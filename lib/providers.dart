@@ -27,4 +27,9 @@ class ThemeProvider with ChangeNotifier {
     _themeMode = ThemeMode.system;
     notifyListeners();
   }
+
+  void setThemeMode(ThemeMode mode) {
+    _themeMode = mode;
+    notifyListeners();
+  }
 }

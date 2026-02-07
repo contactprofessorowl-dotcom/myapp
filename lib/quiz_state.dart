@@ -1,31 +1,52 @@
 import 'package:flutter/material.dart';
 
+/// Single source of truth for quiz questions. Used by QuizScreen and ResultsScreen.
+class Question {
+  final String question;
+  final List<String> options;
+  final int correctAnswerIndex;
+  final String hint;
+
+  const Question({
+    required this.question,
+    required this.options,
+    required this.correctAnswerIndex,
+    required this.hint,
+  });
+}
+
 class QuizState with ChangeNotifier {
   int _score = 0;
   int get score => _score;
 
-  final List<Map<String, Object>> _questions = const [
-    {
-      'questionText': 'What is the capital of France?',
-      'answers': [
-        {'text': 'Berlin', 'score': 0},
-        {'text': 'Madrid', 'score': 0},
-        {'text': 'Paris', 'score': 1},
-        {'text': 'Rome', 'score': 0},
+  static const List<Question> _questions = [
+    Question(
+      question: 'What is the capital of France?',
+      options: ['Berlin', 'Madrid', 'Paris', 'Rome'],
+      correctAnswerIndex: 2,
+      hint: 'It is known as the city of love.',
+    ),
+    Question(
+      question: 'What is 2 + 2?',
+      options: ['3', '4', '5', '6'],
+      correctAnswerIndex: 1,
+      hint: 'It is a simple addition.',
+    ),
+    Question(
+      question: 'Who wrote "To Kill a Mockingbird"?',
+      options: [
+        'Harper Lee',
+        'Mark Twain',
+        'J.K. Rowling',
+        'F. Scott Fitzgerald',
       ],
-    },
-    {
-      'questionText': 'What is the largest planet in our solar system?',
-      'answers': [
-        {'text': 'Earth', 'score': 0},
-        {'text': 'Jupiter', 'score': 1},
-        {'text': 'Mars', 'score': 0},
-        {'text': 'Venus', 'score': 0},
-      ],
-    },
+      correctAnswerIndex: 0,
+      hint: 'The author is a woman.',
+    ),
   ];
 
-  List<Map<String, Object>> get questions => _questions;
+  List<Question> get questions => _questions;
+  int get questionCount => _questions.length;
 
   void answerQuestion(int score) {
     _score += score;
