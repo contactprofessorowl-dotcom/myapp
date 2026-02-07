@@ -97,24 +97,32 @@ class _QuizScreenState extends State<QuizScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Quiz'),
-        leading: IconButton(
-          icon: const Icon(Icons.close_rounded),
-          onPressed: () => _showExitConfirmation(context),
+        leading: Semantics(
+          label: 'Close quiz. Your progress will be lost.',
+          button: true,
+          child: IconButton(
+            icon: const Icon(Icons.close_rounded),
+            onPressed: () => _showExitConfirmation(context),
+            tooltip: 'Close quiz',
+          ),
         ),
         actions: [
           Padding(
             padding: const EdgeInsets.only(right: 16),
             child: Center(
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.primaryContainer.withValues(alpha: 0.5),
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: Text(
-                  'Score: ${quizState.score}',
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w700,
+              child: Semantics(
+                label: 'Current score: ${quizState.score} correct',
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).colorScheme.primaryContainer.withValues(alpha: 0.5),
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Text(
+                    'Score: ${quizState.score}',
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.w700,
+                    ),
                   ),
                 ),
               ),
@@ -203,41 +211,51 @@ class _QuizBottomBar extends StatelessWidget {
     final isFirst = currentPage == 0;
     final isLast = currentPage == total - 1;
 
-    return SafeArea(
-      top: false,
-      child: Container(
-        padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
-        decoration: BoxDecoration(
-          color: theme.colorScheme.surface,
-          border: Border(
-            top: BorderSide(
-              color: theme.colorScheme.outlineVariant.withValues(alpha: 0.5),
+    return Semantics(
+      label: isLast ? 'Navigation: Previous question or See results' : 'Navigation: Previous question or Next question',
+      child: SafeArea(
+        top: false,
+        child: Container(
+          padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
+          decoration: BoxDecoration(
+            color: theme.colorScheme.surface,
+            border: Border(
+              top: BorderSide(
+                color: theme.colorScheme.outlineVariant.withValues(alpha: 0.5),
+              ),
             ),
           ),
-        ),
-        child: Row(
-          children: [
-            Expanded(
-              child: OutlinedButton(
-                onPressed: isFirst ? null : onPrevious,
-                style: OutlinedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(vertical: 16),
+          child: Row(
+            children: [
+              Expanded(
+                child: Semantics(
+                  label: isFirst ? null : 'Previous question',
+                  enabled: !isFirst,
+                  child: OutlinedButton(
+                    onPressed: isFirst ? null : onPrevious,
+                    style: OutlinedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                    ),
+                    child: const Text('Previous'),
+                  ),
                 ),
-                child: const Text('Previous'),
               ),
-            ),
-            const SizedBox(width: 16),
-            Expanded(
-              flex: 2,
-              child: FilledButton(
-                onPressed: onNext,
-                style: FilledButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(vertical: 16),
+              const SizedBox(width: 16),
+              Expanded(
+                flex: 2,
+                child: Semantics(
+                  label: isLast ? 'See results' : 'Next question',
+                  child: FilledButton(
+                    onPressed: onNext,
+                    style: FilledButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                    ),
+                    child: Text(isLast ? 'See results' : 'Next'),
+                  ),
                 ),
-                child: Text(isLast ? 'See results' : 'Next'),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -357,11 +375,15 @@ class _QuizPlayerPageState extends State<_QuizPlayerPage> {
     return LayoutBuilder(
       builder: (context, constraints) {
         final shortScreen = constraints.maxHeight < 500;
-        final questionCard = _QuestionFlashcard(
-          questionText: widget.question.question,
-          hintText: widget.question.hint,
-          questionNumber: widget.questionNumber,
-          totalQuestions: widget.totalQuestions,
+        final questionCard = Semantics(
+          header: true,
+          label: 'Question ${widget.questionNumber} of ${widget.totalQuestions}',
+          child: _QuestionFlashcard(
+            questionText: widget.question.question,
+            hintText: widget.question.hint,
+            questionNumber: widget.questionNumber,
+            totalQuestions: widget.totalQuestions,
+          ),
         );
 
         final optionsAndButton = [
@@ -403,7 +425,18 @@ class _QuizPlayerPageState extends State<_QuizPlayerPage> {
                   child: questionCard,
                 ),
               ),
-              ...optionsAndButton,
+              const SizedBox(height: 12),
+              Flexible(
+                child: SingleChildScrollView(
+                  child: _OptionsSection(
+                    question: widget.question,
+                    selectedAnswerIndex: _selectedAnswerIndex,
+                    isAnswered: widget.isAnswered,
+                    onAnswer: _handleAnswer,
+                    useTwoColumns: useTwoColumns,
+                  ),
+                ),
+              ),
             ],
           ),
         );
@@ -527,15 +560,15 @@ class _QuestionFlashcardState extends State<_QuestionFlashcard>
       constraints: const BoxConstraints(minHeight: _kQuestionSectionMinHeight),
       decoration: BoxDecoration(
         color: cardColor,
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(24),
         border: Border.all(
-          color: theme.colorScheme.outlineVariant,
+          color: theme.colorScheme.outlineVariant.withValues(alpha: 0.8),
           width: 1.5,
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: theme.brightness == Brightness.dark ? 0.3 : 0.08),
-            blurRadius: 12,
+            color: Colors.black.withValues(alpha: theme.brightness == Brightness.dark ? 0.25 : 0.06),
+            blurRadius: 16,
             offset: const Offset(0, 4),
           ),
         ],
@@ -720,12 +753,12 @@ class _OptionTile extends StatelessWidget {
           color: Colors.transparent,
           child: InkWell(
             onTap: isAnswered ? null : () => onAnswer(index, context),
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: BorderRadius.circular(20),
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
               decoration: BoxDecoration(
                 border: Border.all(color: borderColor(), width: showResult ? 3 : 2),
-                borderRadius: BorderRadius.circular(16),
+                borderRadius: BorderRadius.circular(20),
                 color: backgroundColor(),
               ),
               child: Row(

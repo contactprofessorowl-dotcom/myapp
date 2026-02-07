@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'providers.dart';
 import 'quiz_state.dart';
+import 'theme.dart';
 
 /// Gamification tiers for results, aligned with self-determination theory (competence feedback)
 /// and growth mindset (Dweck): emphasize effort and progress, avoid fixed-ability framing.
@@ -75,47 +76,94 @@ class ResultsScreen extends StatelessWidget {
     final heroColor = tier.heroColor ?? theme.colorScheme.primary;
 
     return Scaffold(
+      appBar: AppBar(
+        title: const Text('Quiz results'),
+      ),
       body: SafeArea(
         child: CustomScrollView(
           slivers: [
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(24, 20, 24, 0),
+                child: Semantics(
+                  header: true,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Text(
+                        'Your result',
+                        style: theme.textTheme.titleLarge?.copyWith(
+                          fontWeight: FontWeight.w700,
+                          color: theme.colorScheme.onSurface,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        'Here\'s how you did.',
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          color: theme.colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
             SliverFillRemaining(
               hasScrollBody: false,
               child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 24),
+                padding: const EdgeInsets.fromLTRB(24, 20, 24, 24),
                 child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    const SizedBox(height: 28),
-                    Container(
-                      padding: const EdgeInsets.all(20),
-                      decoration: BoxDecoration(
-                        color: heroColor.withValues(alpha: 0.12),
-                        shape: BoxShape.circle,
-                      ),
-                      child: Icon(
-                        tier.icon,
-                        size: 64,
-                        color: heroColor,
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Semantics(
+                            label: 'Questions answered: $score out of $total',
+                            child: _SummaryCard(
+                              icon: Icons.quiz_rounded,
+                              value: '$score / $total',
+                              label: 'Questions answered',
+                              accentColor: FlashAccentColors.purple,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Semantics(
+                            label: 'Score: $percentage percent',
+                            child: _SummaryCard(
+                              icon: Icons.percent_rounded,
+                              value: '$percentage%',
+                              label: 'Score',
+                              accentColor: FlashAccentColors.blue,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 20),
+                    _ResultHeroCard(
+                      tier: tier,
+                      heroColor: heroColor,
+                      theme: theme,
+                    ),
+                    const SizedBox(height: 16),
+                    Semantics(
+                      label: 'Score bar: $percentage percent',
+                      value: '$percentage%',
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(8),
+                        child: LinearProgressIndicator(
+                          value: percentage / 100,
+                          minHeight: 8,
+                          backgroundColor: theme.colorScheme.surfaceContainerHighest,
+                          valueColor: AlwaysStoppedAnimation<Color>(heroColor),
+                        ),
                       ),
                     ),
-                    const SizedBox(height: 24),
-                    Text(
-                      tier.title,
-                      style: theme.textTheme.displaySmall?.copyWith(
-                        fontWeight: FontWeight.bold,
-                        color: theme.colorScheme.onSurface,
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                    const SizedBox(height: 12),
-                    Text(
-                      tier.subtitle,
-                      style: theme.textTheme.bodyLarge?.copyWith(
-                        color: theme.colorScheme.onSurfaceVariant,
-                        height: 1.45,
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                    const SizedBox(height: 12),
+                    const SizedBox(height: 8),
                     Text(
                       tier.tagline,
                       style: theme.textTheme.bodySmall?.copyWith(
@@ -124,42 +172,43 @@ class ResultsScreen extends StatelessWidget {
                       ),
                       textAlign: TextAlign.center,
                     ),
-                    const SizedBox(height: 32),
-                    _ScoreCard(
-                      score: score,
-                      total: total,
-                      percentage: percentage,
-                      accentColor: heroColor,
-                    ),
                     const Spacer(),
-                    SizedBox(
-                      width: double.infinity,
-                      child: FilledButton(
-                        onPressed: () {
-                          Provider.of<UserData>(context, listen: false)
-                              .updateLevelFromQuizResult(score, total);
-                          quizState.resetQuiz();
-                          context.go('/generate-quiz');
-                        },
-                        style: FilledButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(vertical: 20),
+                    Semantics(
+                      button: true,
+                      label: 'Take another quiz',
+                      child: SizedBox(
+                        width: double.infinity,
+                        child: FilledButton(
+                          onPressed: () {
+                            Provider.of<UserData>(context, listen: false)
+                                .updateLevelFromQuizResult(score, total);
+                            quizState.resetQuiz();
+                            context.go('/generate-quiz');
+                          },
+                          style: FilledButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(vertical: 20),
+                          ),
+                          child: const Text('Take another quiz'),
                         ),
-                        child: const Text('Take another quiz'),
                       ),
                     ),
                     const SizedBox(height: 12),
-                    SizedBox(
-                      width: double.infinity,
-                      child: OutlinedButton(
-                        onPressed: () {
-                          Provider.of<UserData>(context, listen: false)
-                              .updateLevelFromQuizResult(score, total);
-                          context.go('/');
-                        },
-                        style: OutlinedButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(vertical: 20),
+                    Semantics(
+                      button: true,
+                      label: 'Back to home',
+                      child: SizedBox(
+                        width: double.infinity,
+                        child: OutlinedButton(
+                          onPressed: () {
+                            Provider.of<UserData>(context, listen: false)
+                                .updateLevelFromQuizResult(score, total);
+                            context.go('/');
+                          },
+                          style: OutlinedButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(vertical: 20),
+                          ),
+                          child: const Text('Back to home'),
                         ),
-                        child: const Text('Back to home'),
                       ),
                     ),
                     const SizedBox(height: 32),
@@ -174,69 +223,55 @@ class ResultsScreen extends StatelessWidget {
   }
 }
 
-class _ScoreCard extends StatelessWidget {
-  const _ScoreCard({
-    required this.score,
-    required this.total,
-    required this.percentage,
-    this.accentColor,
+class _SummaryCard extends StatelessWidget {
+  const _SummaryCard({
+    required this.icon,
+    required this.value,
+    required this.label,
+    required this.accentColor,
   });
 
-  final int score;
-  final int total;
-  final int percentage;
-  final Color? accentColor;
+  final IconData icon;
+  final String value;
+  final String label;
+  final Color accentColor;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final color = accentColor ?? theme.colorScheme.primary;
-
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 36),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.08),
-        borderRadius: BorderRadius.circular(24),
+        color: theme.cardTheme.color,
+        borderRadius: BorderRadius.circular(20),
         border: Border.all(
-          color: color.withValues(alpha: 0.35),
-          width: 1.5,
+          color: theme.colorScheme.outlineVariant.withValues(alpha: 0.5),
         ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 2),
+          ),
+        ],
       ),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          Icon(icon, size: 28, color: accentColor),
+          const SizedBox(height: 12),
           Text(
-            'Your score',
-            style: theme.textTheme.titleMedium?.copyWith(
-              color: theme.colorScheme.onSurfaceVariant,
+            value,
+            style: theme.textTheme.titleLarge?.copyWith(
+              fontWeight: FontWeight.bold,
+              color: theme.colorScheme.onSurface,
             ),
           ),
-          const SizedBox(height: 12),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.baseline,
-            textBaseline: TextBaseline.alphabetic,
-            children: [
-              Text(
-                '$score',
-                style: theme.textTheme.displayMedium?.copyWith(
-                  fontWeight: FontWeight.bold,
-                  color: color,
-                ),
-              ),
-              Text(
-                ' / $total',
-                style: theme.textTheme.headlineMedium?.copyWith(
-                  color: theme.colorScheme.onSurfaceVariant,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 2),
           Text(
-            '$percentage%',
-            style: theme.textTheme.titleLarge?.copyWith(
-              fontWeight: FontWeight.w700,
-              color: color,
+            label,
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
             ),
           ),
         ],
@@ -244,3 +279,74 @@ class _ScoreCard extends StatelessWidget {
     );
   }
 }
+
+class _ResultHeroCard extends StatelessWidget {
+  const _ResultHeroCard({
+    required this.tier,
+    required this.heroColor,
+    required this.theme,
+  });
+
+  final _ResultTier tier;
+  final Color heroColor;
+  final ThemeData theme;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        color: theme.cardTheme.color,
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(
+          color: heroColor.withValues(alpha: 0.3),
+          width: 1.5,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: heroColor.withValues(alpha: 0.08),
+            blurRadius: 16,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: heroColor.withValues(alpha: 0.12),
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: Icon(tier.icon, size: 40, color: heroColor),
+          ),
+          const SizedBox(width: 20),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  tier.title,
+                  style: theme.textTheme.titleLarge?.copyWith(
+                    fontWeight: FontWeight.bold,
+                    color: theme.colorScheme.onSurface,
+                  ),
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  tier.subtitle,
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: theme.colorScheme.onSurfaceVariant,
+                    height: 1.4,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+

@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
 import 'providers.dart';
+import 'theme.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -10,6 +11,10 @@ class HomeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final userData = Provider.of<UserData>(context);
+    final userName = userData.name?.trim().isNotEmpty == true
+        ? userData.name!.trim()
+        : null;
 
     return CustomScrollView(
       slivers: [
@@ -34,51 +39,142 @@ class HomeScreen extends StatelessWidget {
         ),
         SliverToBoxAdapter(
           child: Padding(
-            padding: const EdgeInsets.fromLTRB(24, 16, 24, 8),
+            padding: const EdgeInsets.fromLTRB(24, 8, 24, 16),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 Text(
-                  'Welcome!',
+                  userName != null ? 'Welcome $userName!' : 'Welcome!',
                   style: theme.textTheme.displaySmall?.copyWith(
                     fontWeight: FontWeight.bold,
+                    color: theme.colorScheme.onSurface,
                   ),
                 ),
-                const SizedBox(height: 8),
+                const SizedBox(height: 24),
+                _HeroStartCard(onTap: () => context.go('/generate-quiz')),
+                const SizedBox(height: 28),
                 Text(
-                  'Test your knowledge and learn something new. Pick a card below to get started.',
-                  style: theme.textTheme.bodyLarge?.copyWith(
-                    color: theme.colorScheme.onSurfaceVariant,
-                    height: 1.5,
+                  'Select quiz type',
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w700,
+                    color: theme.colorScheme.onSurface,
                   ),
                 ),
+                const SizedBox(height: 16),
+                _HomeCard(
+                  icon: Icons.quiz_rounded,
+                  title: 'Check your knowledge',
+                  subtitle: 'Pick a topic and play. Quizzes adapt to your level.',
+                  onTap: () => context.go('/generate-quiz'),
+                  accentColor: FlashAccentColors.purple,
+                ),
+                const SizedBox(height: 12),
+                _HomeCard(
+                  icon: Icons.menu_book_rounded,
+                  title: 'Check your vocabulary',
+                  subtitle: 'Flashcards with definitions and terms by topic.',
+                  onTap: () => context.go('/generate-vocabulary'),
+                  accentColor: FlashAccentColors.blue,
+                ),
+                const SizedBox(height: 12),
+                _HomeCard(
+                  icon: Icons.record_voice_over_rounded,
+                  title: 'Check your pronunciation',
+                  subtitle: 'Coming soon.',
+                  onTap: null,
+                  accentColor: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
+                const SizedBox(height: 32),
               ],
             ),
           ),
         ),
-        SliverPadding(
-          padding: const EdgeInsets.fromLTRB(24, 24, 24, 24),
-          sliver: SliverList(
-            delegate: SliverChildListDelegate([
-              _HomeCard(
-                icon: Icons.quiz_rounded,
-                title: 'Start quiz',
-                subtitle: 'Generate a quiz with AI or use a sample.',
-                onTap: () => context.go('/generate-quiz'),
-                accentColor: theme.colorScheme.primary,
+      ],
+    );
+  }
+}
+
+/// Large "Let's Start Now!" card with illustration area and CTA (reference-style hero).
+class _HeroStartCard extends StatelessWidget {
+  const _HeroStartCard({required this.onTap});
+
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(24),
+        child: Container(
+          padding: const EdgeInsets.all(24),
+          decoration: BoxDecoration(
+            color: theme.cardTheme.color,
+            borderRadius: BorderRadius.circular(24),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(
+                    alpha: theme.brightness == Brightness.dark ? 0.2 : 0.06),
+                blurRadius: 16,
+                offset: const Offset(0, 6),
               ),
-              const SizedBox(height: 16),
-              _HomeCard(
-                icon: Icons.person_rounded,
-                title: 'My profile',
-                subtitle: 'View and edit your account.',
-                onTap: () => context.go('/account'),
-                accentColor: theme.colorScheme.secondary,
-              ),
-            ]),
+            ],
+            border: Border.all(
+              color: theme.colorScheme.outlineVariant.withValues(alpha: 0.4),
+              width: 1,
+            ),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        "Let's Start Now!",
+                        style: theme.textTheme.headlineMedium?.copyWith(
+                          fontWeight: FontWeight.bold,
+                          color: theme.colorScheme.onSurface,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        'Play, learn and explore with exciting quizzes!',
+                        style: theme.textTheme.bodyLarge?.copyWith(
+                          color: theme.colorScheme.onSurfaceVariant,
+                          height: 1.4,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 16),
+                Container(
+                  width: 72,
+                  height: 72,
+                  decoration: BoxDecoration(
+                    color: FlashAccentColors.purple.withValues(alpha: 0.12),
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Icon(
+                    Icons.school_rounded,
+                    size: 40,
+                    color: FlashAccentColors.purple,
+                  ),
+                ),
+              ],
+            ),
+          ],
           ),
         ),
-      ],
+      ),
     );
   }
 }
@@ -95,30 +191,32 @@ class _HomeCard extends StatelessWidget {
   final IconData icon;
   final String title;
   final String subtitle;
-  final VoidCallback onTap;
+  final VoidCallback? onTap;
   final Color accentColor;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final enabled = onTap != null;
 
     return Material(
       color: Colors.transparent,
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(24),
         child: Container(
-          padding: const EdgeInsets.all(24),
+          padding: const EdgeInsets.all(20),
           decoration: BoxDecoration(
             color: theme.cardTheme.color,
-            borderRadius: BorderRadius.circular(20),
+            borderRadius: BorderRadius.circular(24),
             border: Border.all(
               color: theme.colorScheme.outlineVariant.withValues(alpha: 0.5),
               width: 1,
             ),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withValues(alpha: theme.brightness == Brightness.dark ? 0.2 : 0.06),
+                color: Colors.black.withValues(
+                    alpha: theme.brightness == Brightness.dark ? 0.2 : 0.06),
                 blurRadius: 12,
                 offset: const Offset(0, 4),
               ),
@@ -127,12 +225,12 @@ class _HomeCard extends StatelessWidget {
           child: Row(
             children: [
               Container(
-                padding: const EdgeInsets.all(16),
+                padding: const EdgeInsets.all(14),
                 decoration: BoxDecoration(
-                  color: accentColor.withValues(alpha: 0.15),
+                  color: accentColor.withValues(alpha: enabled ? 0.12 : 0.06),
                   borderRadius: BorderRadius.circular(16),
                 ),
-                child: Icon(icon, size: 32, color: accentColor),
+                child: Icon(icon, size: 28, color: enabled ? accentColor : theme.colorScheme.onSurfaceVariant),
               ),
               const SizedBox(width: 20),
               Expanded(
@@ -141,8 +239,9 @@ class _HomeCard extends StatelessWidget {
                   children: [
                     Text(
                       title,
-                      style: theme.textTheme.titleLarge?.copyWith(
+                      style: theme.textTheme.titleMedium?.copyWith(
                         fontWeight: FontWeight.w700,
+                        color: enabled ? null : theme.colorScheme.onSurfaceVariant,
                       ),
                     ),
                     const SizedBox(height: 4),
@@ -150,16 +249,18 @@ class _HomeCard extends StatelessWidget {
                       subtitle,
                       style: theme.textTheme.bodyMedium?.copyWith(
                         color: theme.colorScheme.onSurfaceVariant,
+                        fontSize: 14,
                       ),
                     ),
                   ],
                 ),
               ),
-              Icon(
-                Icons.arrow_forward_ios_rounded,
-                size: 18,
-                color: theme.colorScheme.onSurfaceVariant,
-              ),
+              if (enabled)
+                Icon(
+                  Icons.arrow_forward_ios_rounded,
+                  size: 16,
+                  color: theme.colorScheme.onSurfaceVariant,
+                ),
             ],
           ),
         ),

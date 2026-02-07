@@ -3,76 +3,48 @@ import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
 import 'providers.dart';
-import 'quiz_state.dart';
 import 'services/ai_service.dart';
+import 'theme.dart';
+import 'vocabulary_state.dart';
 
-/// Suggested topics for younger users (by expertise level).
-const Map<String, List<String>> suggestedTopicsYounger = {
+/// Suggested vocabulary topics by level.
+const Map<String, List<String>> _vocabularyTopicsByLevel = {
   'beginner': [
-    'World capitals',
-    'Simple addition',
-    'Colors and shapes',
-    'Animals',
-    'Famous stories',
     'Basic vocabulary',
-  ],
-  'intermediate': [
-    'Multiplication tables',
-    'World history',
-    'Shakespeare',
-    'Basic science',
-    'Geography',
-    'Grammar and writing',
-  ],
-  'advanced': [
-    'Algebra',
-    'Literature analysis',
-    'Physics',
-    'Chemistry',
-    'Essay writing',
-    'Current events',
-  ],
-};
-
-/// Suggested topics for adults (18+) – age-appropriate, no preschool content.
-const Map<String, List<String>> suggestedTopicsAdult = {
-  'beginner': [
     'World capitals',
-    'General knowledge',
-    'History basics',
-    'Science fundamentals',
-    'Geography',
-    'Famous books and authors',
+    'Animals',
+    'Colors and shapes',
+    'Famous places',
+    'Simple science terms',
   ],
   'intermediate': [
-    'World history',
-    'Literature',
-    'Economics basics',
-    'Biology and health',
-    'Current affairs',
+    'Science vocabulary',
+    'World history terms',
+    'Literature vocabulary',
+    'Geography terms',
     'Grammar and writing',
+    'Economics basics',
   ],
   'advanced': [
-    'Philosophy',
-    'Literature analysis',
-    'Physics',
-    'Chemistry',
+    'Academic vocabulary',
+    'Philosophy terms',
+    'Physics terminology',
+    'Chemistry terms',
     'Politics and governance',
     'Critical thinking',
   ],
 };
 
-/// Screen to generate a quiz via AI. Suggests topics by level; level updates from quiz results.
-class GenerateQuizScreen extends StatefulWidget {
-  const GenerateQuizScreen({super.key});
+class GenerateVocabularyScreen extends StatefulWidget {
+  const GenerateVocabularyScreen({super.key});
 
   @override
-  State<GenerateQuizScreen> createState() => _GenerateQuizScreenState();
+  State<GenerateVocabularyScreen> createState() => _GenerateVocabularyScreenState();
 }
 
-class _GenerateQuizScreenState extends State<GenerateQuizScreen> {
+class _GenerateVocabularyScreenState extends State<GenerateVocabularyScreen> {
   final _topicController = TextEditingController();
-  static const int _defaultCount = 5;
+  static const int _defaultCount = 10;
   bool _isLoading = false;
   String? _error;
 
@@ -95,9 +67,9 @@ class _GenerateQuizScreenState extends State<GenerateQuizScreen> {
 
     final ai = Provider.of<AiService>(context, listen: false);
     final userData = Provider.of<UserData>(context, listen: false);
-    final quizState = Provider.of<QuizState>(context, listen: false);
+    final vocabularyState = Provider.of<VocabularyState>(context, listen: false);
 
-    final questions = await ai.generateQuestions(
+    final cards = await ai.generateVocabulary(
       topic: t,
       age: userData.age,
       expertiseLevel: userData.expertiseLevel ?? 'intermediate',
@@ -107,13 +79,13 @@ class _GenerateQuizScreenState extends State<GenerateQuizScreen> {
     if (!mounted) return;
     setState(() => _isLoading = false);
 
-    if (questions.isEmpty) {
-      setState(() => _error = 'Could not generate questions. Try again.');
+    if (cards.isEmpty) {
+      setState(() => _error = 'Could not generate vocabulary. Try again.');
       return;
     }
 
-    quizState.setGeneratedQuestions(questions);
-    context.go('/quiz');
+    vocabularyState.setCards(cards);
+    context.go('/vocabulary-cards');
   }
 
   String _levelLabel(String? level) {
@@ -133,14 +105,11 @@ class _GenerateQuizScreenState extends State<GenerateQuizScreen> {
     final userData = Provider.of<UserData>(context);
     final ai = Provider.of<AiService>(context);
     final level = userData.expertiseLevel ?? 'intermediate';
-    final age = int.tryParse(userData.age?.trim() ?? '');
-    final isAdult = age != null && age >= 18;
-    final suggestionMap = isAdult ? suggestedTopicsAdult : suggestedTopicsYounger;
-    final suggestions = suggestionMap[level] ?? suggestionMap['intermediate']!;
+    final suggestions = _vocabularyTopicsByLevel[level] ?? _vocabularyTopicsByLevel['intermediate']!;
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('New quiz'),
+        title: const Text('Vocabulary'),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(24),
@@ -150,7 +119,7 @@ class _GenerateQuizScreenState extends State<GenerateQuizScreen> {
             Semantics(
               header: true,
               child: Text(
-                'Select quiz type',
+                'Select topic',
                 style: theme.textTheme.titleMedium?.copyWith(
                   fontWeight: FontWeight.w700,
                   color: theme.colorScheme.onSurface,
@@ -181,7 +150,7 @@ class _GenerateQuizScreenState extends State<GenerateQuizScreen> {
             ),
             const SizedBox(height: 12),
             Text(
-              'Pick a topic or type your own below.',
+              'Pick a topic. You\'ll get flashcards with definitions on one side and the word or phrase on the other.',
               style: theme.textTheme.bodyMedium?.copyWith(
                 color: theme.colorScheme.onSurfaceVariant,
               ),
@@ -195,15 +164,9 @@ class _GenerateQuizScreenState extends State<GenerateQuizScreen> {
               crossAxisSpacing: 12,
               childAspectRatio: 1.15,
               children: suggestions.map((topic) {
-                return _TopicCard(
+                return _VocabularyTopicCard(
                   topic: topic,
-                  onTap: _isLoading
-                      ? null
-                      : () {
-                          _topicController.text = topic;
-                          setState(() => _error = null);
-                          _generate(context, topic: topic);
-                        },
+                  onTap: _isLoading ? null : () => _generate(context, topic: topic),
                   theme: theme,
                 );
               }).toList(),
@@ -216,18 +179,15 @@ class _GenerateQuizScreenState extends State<GenerateQuizScreen> {
               ),
             ),
             const SizedBox(height: 8),
-            Semantics(
-              label: 'Type your own topic',
-              child: TextField(
-                controller: _topicController,
-                decoration: const InputDecoration(
-                  labelText: 'Topic',
-                  hintText: 'e.g. World capitals, Multiplication, Shakespeare',
-                  prefixIcon: Icon(Icons.edit_rounded),
-                ),
-                textCapitalization: TextCapitalization.sentences,
-                onSubmitted: (_) => _generate(context),
+            TextField(
+              controller: _topicController,
+              decoration: const InputDecoration(
+                labelText: 'Topic',
+                hintText: 'e.g. Science vocabulary, Geography terms',
+                prefixIcon: Icon(Icons.edit_rounded),
               ),
+              textCapitalization: TextCapitalization.sentences,
+              onSubmitted: (_) => _generate(context),
             ),
             if (_error != null) ...[
               const SizedBox(height: 16),
@@ -239,27 +199,23 @@ class _GenerateQuizScreenState extends State<GenerateQuizScreen> {
               ),
             ],
             const SizedBox(height: 28),
-            Semantics(
-              label: _isLoading ? 'Generating quiz' : 'Generate and start quiz',
-              button: true,
-              child: FilledButton(
-                onPressed: _isLoading ? null : () => _generate(context),
-                style: FilledButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(vertical: 18),
-                ),
-                child: _isLoading
+            FilledButton(
+              onPressed: _isLoading ? null : () => _generate(context),
+              style: FilledButton.styleFrom(
+                padding: const EdgeInsets.symmetric(vertical: 18),
+              ),
+              child: _isLoading
                   ? const SizedBox(
                       height: 24,
                       width: 24,
                       child: CircularProgressIndicator(strokeWidth: 2),
                     )
-                  : const Text('Generate & start quiz'),
-              ),
+                  : const Text('Generate & start flashcards'),
             ),
             if (!ai.isAvailable) ...[
               const SizedBox(height: 16),
               Text(
-                'AI is not configured. Add an API key to generate quizzes.',
+                'AI is not configured. Add an API key to generate vocabulary.',
                 style: theme.textTheme.bodySmall?.copyWith(
                   color: theme.colorScheme.onSurfaceVariant,
                 ),
@@ -273,8 +229,8 @@ class _GenerateQuizScreenState extends State<GenerateQuizScreen> {
   }
 }
 
-class _TopicCard extends StatelessWidget {
-  const _TopicCard({
+class _VocabularyTopicCard extends StatelessWidget {
+  const _VocabularyTopicCard({
     required this.topic,
     required this.onTap,
     required this.theme,
@@ -289,64 +245,64 @@ class _TopicCard extends StatelessWidget {
     return Semantics(
       button: true,
       enabled: onTap != null,
-      label: 'Topic: $topic. Double tap to start quiz.',
+      label: 'Topic: $topic. Double tap to start flashcards.',
       child: Material(
         color: Colors.transparent,
         child: InkWell(
           onTap: onTap,
           borderRadius: BorderRadius.circular(20),
           child: Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: theme.cardTheme.color,
-            borderRadius: BorderRadius.circular(20),
-            border: Border.all(
-              color: theme.colorScheme.outlineVariant.withValues(alpha: 0.5),
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: theme.cardTheme.color,
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(
+                color: theme.colorScheme.outlineVariant.withValues(alpha: 0.5),
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.05),
+                  blurRadius: 10,
+                  offset: const Offset(0, 2),
+                ),
+              ],
             ),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.05),
-                blurRadius: 10,
-                offset: const Offset(0, 2),
-              ),
-            ],
-          ),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Icon(
-                    Icons.quiz_rounded,
-                    size: 26,
-                    color: theme.colorScheme.primary,
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    topic,
-                    style: theme.textTheme.titleSmall?.copyWith(
-                      fontWeight: FontWeight.w600,
-                      color: theme.colorScheme.onSurface,
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Icon(
+                      Icons.menu_book_rounded,
+                      size: 26,
+                      color: FlashAccentColors.blue,
                     ),
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ],
-              ),
-              Icon(
-                Icons.arrow_forward_ios_rounded,
-                size: 14,
-                color: theme.colorScheme.onSurfaceVariant,
-              ),
-            ],
+                    const SizedBox(height: 8),
+                    Text(
+                      topic,
+                      style: theme.textTheme.titleSmall?.copyWith(
+                        fontWeight: FontWeight.w600,
+                        color: theme.colorScheme.onSurface,
+                      ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
+                ),
+                Icon(
+                  Icons.arrow_forward_ios_rounded,
+                  size: 14,
+                  color: theme.colorScheme.onSurfaceVariant,
+                ),
+              ],
+            ),
           ),
         ),
       ),
-    ),
     );
   }
 }

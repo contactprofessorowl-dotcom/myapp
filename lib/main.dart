@@ -5,6 +5,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import 'account_screen.dart';
 import 'generate_quiz_screen.dart';
+import 'generate_vocabulary_screen.dart';
 import 'home_screen.dart';
 import 'legal/privacy_policy_screen.dart';
 import 'legal/terms_screen.dart';
@@ -17,6 +18,8 @@ import 'services/ai_service.dart';
 import 'settings_screen.dart';
 import 'splash_screen.dart';
 import 'theme.dart';
+import 'vocabulary_cards_screen.dart';
+import 'vocabulary_state.dart';
 import 'welcome_screen.dart';
 
 /// Set your Gemini API key here for local development (do not commit this file with a real key).
@@ -33,6 +36,7 @@ void main() {
         ChangeNotifierProvider(create: (_) => AppPrefs()),
         ChangeNotifierProvider(create: (_) => UserData()),
         ChangeNotifierProvider(create: (_) => QuizState()),
+        ChangeNotifierProvider(create: (_) => VocabularyState()),
         Provider<AiService>(
           create: (_) => AiService(
             apiKey: String.fromEnvironment('GEMINI_API_KEY', defaultValue: _kGeminiApiKey),
@@ -180,6 +184,10 @@ final GoRouter _router = GoRouter(
           path: '/generate-quiz',
           builder: (_, __) => const GenerateQuizScreen(),
         ),
+        GoRoute(
+          path: '/generate-vocabulary',
+          builder: (_, __) => const GenerateVocabularyScreen(),
+        ),
       ],
     ),
     GoRoute(
@@ -189,6 +197,10 @@ final GoRouter _router = GoRouter(
     GoRoute(
       path: '/results',
       builder: (_, __) => const ResultsScreen(),
+    ),
+    GoRoute(
+      path: '/vocabulary-cards',
+      builder: (_, __) => const VocabularyCardsScreen(),
     ),
   ],
 );

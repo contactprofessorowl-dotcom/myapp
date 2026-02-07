@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart';
 import 'package:google_generative_ai/google_generative_ai.dart';
 
 import '../quiz_state.dart';
+import '../vocabulary_state.dart';
 
 /// Centralized service for all AI (Gemini) features.
 ///
@@ -168,7 +169,88 @@ Example (real content):
     ];
   }
 
+  /// Generate vocabulary flashcards for a topic. Each card has a definition (side A) and a term, 1–2 words (side B).
+  /// Returns empty list if API key is missing or request fails.
+  Future<List<VocabularyCard>> generateVocabulary({
+    required String topic,
+    String? age,
+    required String expertiseLevel,
+    int count = 10,
+  }) async {
+    if (_model == null) {
+      if (kDebugMode) debugPrint('[AiService] No model: API key is empty. Using fallback vocabulary.');
+      return _fallbackVocabulary(topic);
+    }
+
+    final ageContext = _buildAgeContext(age);
+    final levelContext = _expertisePrompt(expertiseLevel);
+
+    final prompt = '''
+You are a vocabulary flashcard generator for an educational app. Generate exactly $count flashcard items on the topic: "$topic".
+
+$ageContext
+$levelContext
+
+Each card has two sides:
+- Side A (definition): A clear definition, description, or detail—one or two sentences.
+- Side B (term): The word or short phrase (1 or 2 words) that matches the definition.
+
+Output ONLY a valid JSON array. No markdown, no extra text. Each object must have:
+- "definition": string (the definition or detail for side A)
+- "term": string (the word or 1–2 word phrase for side B)
+
+Example:
+[{"definition":"The capital and largest city of France.","term":"Paris"},{"definition":"A large structure in Paris, built for the 1889 World's Fair.","term":"Eiffel Tower"}]
+''';
+
+    try {
+      if (kDebugMode) debugPrint('[AiService] Calling Gemini for vocabulary topic: $topic');
+      final response = await _model.generateContent([Content.text(prompt)]);
+      final text = response.text?.trim();
+      if (text == null || text.isEmpty) {
+        if (kDebugMode) debugPrint('[AiService] Empty response. Using fallback vocabulary.');
+        return _fallbackVocabulary(topic);
+      }
+
+      var jsonStr = text;
+      if (jsonStr.startsWith('```')) {
+        jsonStr = jsonStr
+            .replaceFirst(RegExp(r'^```\w*\n?'), '')
+            .replaceFirst(RegExp(r'\n?```\s*$'), '');
+      }
+
+      final list = jsonDecode(jsonStr) as List<dynamic>;
+      final cards = <VocabularyCard>[];
+      for (final e in list) {
+        final map = e as Map<String, dynamic>;
+        final definition = (map['definition'] as String?)?.trim();
+        final term = (map['term'] as String?)?.trim();
+        if (definition == null || definition.isEmpty || term == null || term.isEmpty) continue;
+        cards.add(VocabularyCard(term: term, definition: definition));
+      }
+      if (cards.isEmpty) {
+        if (kDebugMode) debugPrint('[AiService] Parsed 0 vocabulary cards. Using fallback.');
+        return _fallbackVocabulary(topic);
+      }
+      if (kDebugMode) debugPrint('[AiService] Parsed ${cards.length} vocabulary cards.');
+      return cards;
+    } catch (e, st) {
+      if (kDebugMode) {
+        debugPrint('[AiService] Error: $e');
+        debugPrint('[AiService] Stack: $st');
+      }
+      return _fallbackVocabulary(topic);
+    }
+  }
+
+  List<VocabularyCard> _fallbackVocabulary(String topic) {
+    return [
+      VocabularyCard(definition: 'The main subject or theme of "$topic".', term: 'Core concept'),
+      VocabularyCard(definition: 'A key idea or term used when studying $topic.', term: 'Key term'),
+      VocabularyCard(definition: 'Something you should remember about $topic.', term: 'Important point'),
+    ];
+  }
+
   // --- Placeholders for future AI features ---
   // Future<String> getPronunciation(String word) async => ...
-  // Future<List<VocabularyItem>> getVocabulary(String topic) async => ...
 }

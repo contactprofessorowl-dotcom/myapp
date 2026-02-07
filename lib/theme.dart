@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-// Flash design system — friendly, accessible, all ages
+// Flash design system — friendly, accessible, modern quiz app feel
 const Color _primarySeed = Color(0xFF0D7377); // Teal — calm, focus, learning
 const Color _secondarySeed = Color(0xFFF2A541); // Amber — warmth, energy
 
@@ -97,7 +97,7 @@ final ThemeData lightTheme = ThemeData(
     brightness: Brightness.light,
     error: const Color(0xFFB00020),
   ),
-  scaffoldBackgroundColor: const Color(0xFFF0F4F3),
+  scaffoldBackgroundColor: const Color(0xFFF5F3FF), // Soft lavender-white
   textTheme: appTextTheme,
   appBarTheme: AppBarTheme(
     elevation: 0,
@@ -115,7 +115,8 @@ final ThemeData lightTheme = ThemeData(
   ),
   cardTheme: CardThemeData(
     elevation: 0,
-    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+    shadowColor: Colors.black.withValues(alpha: 0.06),
+    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
     color: Colors.white,
     margin: EdgeInsets.zero,
     clipBehavior: Clip.antiAlias,
@@ -127,7 +128,7 @@ final ThemeData lightTheme = ThemeData(
       backgroundColor: const Color(0xFF0D7377),
       padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 18),
       minimumSize: const Size(88, 56),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
       textStyle: GoogleFonts.nunito(fontSize: 17, fontWeight: FontWeight.w700),
     ),
   ),
@@ -137,7 +138,7 @@ final ThemeData lightTheme = ThemeData(
       side: const BorderSide(color: Color(0xFF0D7377), width: 2),
       padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 18),
       minimumSize: const Size(88, 56),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
       textStyle: GoogleFonts.nunito(fontSize: 17, fontWeight: FontWeight.w600),
     ),
   ),
@@ -169,6 +170,14 @@ final ThemeData lightTheme = ThemeData(
     hintStyle: GoogleFonts.nunito(color: Colors.grey.shade600, fontSize: 16),
   ),
 );
+
+/// Accent colors for cards and variety (purple, pink, blue).
+class FlashAccentColors {
+  const FlashAccentColors._();
+  static const Color purple = Color(0xFF7C3AED);
+  static const Color pink = Color(0xFFDB2777);
+  static const Color blue = Color(0xFF2563EB);
+}
 
 // Dark theme — comfortable for evening use
 final ThemeData darkTheme = ThemeData(
