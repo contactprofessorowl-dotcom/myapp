@@ -55,6 +55,28 @@ class UserData with ChangeNotifier {
     notifyListeners();
   }
 
+  /// Updates level based on quiz result. Call when user finishes a quiz.
+  /// Rules: 80%+ correct may level up (beginner→intermediate→advanced);
+  /// under 50% may level down one step.
+  void updateLevelFromQuizResult(int correct, int total) {
+    if (total <= 0) return;
+    final level = expertiseLevel ?? 'intermediate';
+    final pct = correct / total;
+    if (pct >= 0.8) {
+      if (level == 'beginner') {
+        setExpertiseLevel('intermediate');
+      } else if (level == 'intermediate') {
+        setExpertiseLevel('advanced');
+      }
+    } else if (pct < 0.5) {
+      if (level == 'advanced') {
+        setExpertiseLevel('intermediate');
+      } else if (level == 'intermediate') {
+        setExpertiseLevel('beginner');
+      }
+    }
+  }
+
   void clearUserData() {
     name = null;
     age = null;

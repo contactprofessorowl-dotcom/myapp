@@ -42,9 +42,7 @@ class AiService {
       return _fallbackQuestions(topic);
     }
 
-    final ageContext = age != null && age.isNotEmpty
-        ? 'The user is approximately $age years old. Use age-appropriate language and difficulty.'
-        : 'Use clear, accessible language for a general audience.';
+    final ageContext = _buildAgeContext(age);
     final levelContext = _expertisePrompt(expertiseLevel);
 
     final prompt = '''
@@ -123,6 +121,23 @@ Example (real content):
       }
       return _fallbackQuestions(topic);
     }
+  }
+
+  String _buildAgeContext(String? ageStr) {
+    if (ageStr == null || ageStr.isEmpty) {
+      return 'Audience: general. Use clear language and difficulty suitable for teens and adults.';
+    }
+    final age = int.tryParse(ageStr.trim());
+    if (age == null) {
+      return 'The user age is "$ageStr". Use age-appropriate content and difficulty.';
+    }
+    if (age >= 18) {
+      return 'The user is an adult (age $age). Do NOT use content for young children: no questions on colors, basic shapes (e.g. how many sides/angles a shape has), simple counting, or preschool topics. Use depth, vocabulary, and difficulty appropriate for an adult. Match the expertise level for how challenging the questions are.';
+    }
+    if (age >= 13) {
+      return 'The user is a teenager (age $age). Use teen-appropriate topics and vocabulary. Avoid very childish content (e.g. basic colors, "how many angles in a square").';
+    }
+    return 'The user is about $age years old. Use age-appropriate language and topics (simpler vocabulary and concepts are fine for younger users).';
   }
 
   String _expertisePrompt(String level) {

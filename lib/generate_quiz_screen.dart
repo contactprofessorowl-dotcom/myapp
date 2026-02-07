@@ -6,7 +6,63 @@ import 'providers.dart';
 import 'quiz_state.dart';
 import 'services/ai_service.dart';
 
-/// Screen to generate a quiz via AI (Gemini) using topic, age, and expertise level.
+/// Suggested topics for younger users (by expertise level).
+const Map<String, List<String>> suggestedTopicsYounger = {
+  'beginner': [
+    'World capitals',
+    'Simple addition',
+    'Colors and shapes',
+    'Animals',
+    'Famous stories',
+    'Basic vocabulary',
+  ],
+  'intermediate': [
+    'Multiplication tables',
+    'World history',
+    'Shakespeare',
+    'Basic science',
+    'Geography',
+    'Grammar and writing',
+  ],
+  'advanced': [
+    'Algebra',
+    'Literature analysis',
+    'Physics',
+    'Chemistry',
+    'Essay writing',
+    'Current events',
+  ],
+};
+
+/// Suggested topics for adults (18+) – age-appropriate, no preschool content.
+const Map<String, List<String>> suggestedTopicsAdult = {
+  'beginner': [
+    'World capitals',
+    'General knowledge',
+    'History basics',
+    'Science fundamentals',
+    'Geography',
+    'Famous books and authors',
+  ],
+  'intermediate': [
+    'World history',
+    'Literature',
+    'Economics basics',
+    'Biology and health',
+    'Current affairs',
+    'Grammar and writing',
+  ],
+  'advanced': [
+    'Philosophy',
+    'Literature analysis',
+    'Physics',
+    'Chemistry',
+    'Politics and governance',
+    'Critical thinking',
+  ],
+};
+
+/// Screen to generate a quiz via AI. Suggests topics by level; level updates from quiz results.
 class GenerateQuizScreen extends StatefulWidget {
   const GenerateQuizScreen({super.key});
 
@@ -26,10 +82,10 @@ class _GenerateQuizScreenState extends State<GenerateQuizScreen> {
     super.dispose();
   }
 
-  Future<void> _generate(BuildContext context) async {
-    final topic = _topicController.text.trim();
-    if (topic.isEmpty) {
-      setState(() => _error = 'Enter a topic');
+  Future<void> _generate(BuildContext context, {String? topic}) async {
+    final t = (topic ?? _topicController.text).trim();
+    if (t.isEmpty) {
+      setState(() => _error = 'Pick or enter a topic');
       return;
     }
     setState(() {
@@ -42,7 +98,7 @@ class _GenerateQuizScreenState extends State<GenerateQuizScreen> {
     final quizState = Provider.of<QuizState>(context, listen: false);
 
     final questions = await ai.generateQuestions(
-      topic: topic,
+      topic: t,
       age: userData.age,
       expertiseLevel: userData.expertiseLevel ?? 'intermediate',
       count: _defaultCount,
@@ -60,15 +116,31 @@ class _GenerateQuizScreenState extends State<GenerateQuizScreen> {
     context.go('/quiz');
   }
 
+  String _levelLabel(String? level) {
+    switch (level?.toLowerCase()) {
+      case 'beginner':
+        return 'Beginner';
+      case 'advanced':
+        return 'Advanced';
+      default:
+        return 'Intermediate';
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final ai = Provider.of<AiService>(context);
     final userData = Provider.of<UserData>(context);
+    final ai = Provider.of<AiService>(context);
+    final level = userData.expertiseLevel ?? 'intermediate';
+    final age = int.tryParse(userData.age?.trim() ?? '');
+    final isAdult = age != null && age >= 18;
+    final suggestionMap = isAdult ? suggestedTopicsAdult : suggestedTopicsYounger;
+    final suggestions = suggestionMap[level] ?? suggestionMap['intermediate']!;
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Generate quiz'),
+        title: const Text('New quiz'),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(24),
@@ -76,36 +148,61 @@ class _GenerateQuizScreenState extends State<GenerateQuizScreen> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Text(
-              'AI will create quiz questions based on your topic and level.',
+              'Suggested for your level',
+              style: theme.textTheme.labelLarge?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              _levelLabel(userData.expertiseLevel),
+              style: theme.textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.w600,
+                color: theme.colorScheme.primary,
+              ),
+            ),
+            const SizedBox(height: 24),
+            Text(
+              'Pick a topic below or type your own. Quizzes adapt to your level and get harder as you do well.',
               style: theme.textTheme.bodyLarge?.copyWith(
                 color: theme.colorScheme.onSurfaceVariant,
               ),
+            ),
+            const SizedBox(height: 20),
+            Text(
+              'Suggested topics',
+              style: theme.textTheme.titleSmall?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
+            ),
+            const SizedBox(height: 12),
+            Wrap(
+              spacing: 10,
+              runSpacing: 10,
+              children: suggestions.map((topic) {
+                return ActionChip(
+                  label: Text(topic),
+                  onPressed: _isLoading
+                      ? null
+                      : () {
+                          _topicController.text = topic;
+                          setState(() => _error = null);
+                          _generate(context, topic: topic);
+                        },
+                );
+              }).toList(),
             ),
             const SizedBox(height: 24),
             TextField(
               controller: _topicController,
               decoration: const InputDecoration(
-                labelText: 'Topic',
+                labelText: 'Or type your own topic',
                 hintText: 'e.g. World capitals, Multiplication, Shakespeare',
-                prefixIcon: Icon(Icons.topic_rounded),
+                prefixIcon: Icon(Icons.edit_rounded),
               ),
               textCapitalization: TextCapitalization.sentences,
               onSubmitted: (_) => _generate(context),
             ),
-            const SizedBox(height: 16),
-            _InfoChip(
-              icon: Icons.school_rounded,
-              label: 'Level',
-              value: _expertiseLabel(userData.expertiseLevel ?? 'intermediate'),
-            ),
-            if (userData.age != null && userData.age!.isNotEmpty) ...[
-              const SizedBox(height: 8),
-              _InfoChip(
-                icon: Icons.cake_rounded,
-                label: 'Age',
-                value: userData.age!,
-              ),
-            ],
             if (_error != null) ...[
               const SizedBox(height: 16),
               Text(
@@ -115,7 +212,7 @@ class _GenerateQuizScreenState extends State<GenerateQuizScreen> {
                 ),
               ),
             ],
-            const SizedBox(height: 32),
+            const SizedBox(height: 28),
             FilledButton(
               onPressed: _isLoading ? null : () => _generate(context),
               style: FilledButton.styleFrom(
@@ -132,76 +229,15 @@ class _GenerateQuizScreenState extends State<GenerateQuizScreen> {
             if (!ai.isAvailable) ...[
               const SizedBox(height: 16),
               Text(
-                'No API key set. Using sample questions for this topic.',
+                'AI is not configured. Add an API key to generate quizzes.',
                 style: theme.textTheme.bodySmall?.copyWith(
                   color: theme.colorScheme.onSurfaceVariant,
                 ),
                 textAlign: TextAlign.center,
               ),
             ],
-            const SizedBox(height: 24),
-            OutlinedButton(
-              onPressed: () {
-                Provider.of<QuizState>(context, listen: false).clearGeneratedQuestions();
-                context.go('/quiz');
-              },
-              child: const Text('Use sample quiz instead'),
-            ),
           ],
         ),
-      ),
-    );
-  }
-
-  String _expertiseLabel(String level) {
-    switch (level) {
-      case 'beginner':
-        return 'Beginner';
-      case 'advanced':
-        return 'Advanced';
-      default:
-        return 'Intermediate';
-    }
-  }
-}
-
-class _InfoChip extends StatelessWidget {
-  const _InfoChip({
-    required this.icon,
-    required this.label,
-    required this.value,
-  });
-
-  final IconData icon;
-  final String label;
-  final String value;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      decoration: BoxDecoration(
-        color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Row(
-        children: [
-          Icon(icon, size: 20, color: theme.colorScheme.primary),
-          const SizedBox(width: 12),
-          Text(
-            '$label: ',
-            style: theme.textTheme.bodyMedium?.copyWith(
-              color: theme.colorScheme.onSurfaceVariant,
-            ),
-          ),
-          Text(
-            value,
-            style: theme.textTheme.bodyMedium?.copyWith(
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-        ],
       ),
     );
   }

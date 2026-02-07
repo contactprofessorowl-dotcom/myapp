@@ -25,17 +25,54 @@ class QuizScreen extends StatefulWidget {
 class _QuizScreenState extends State<QuizScreen> {
   late PageController _pageController;
   int _currentPage = 0;
+  late List<bool> _pageAnswered;
 
   @override
   void initState() {
     super.initState();
     _pageController = PageController();
+    _pageAnswered = [];
   }
 
   @override
   void dispose() {
     _pageController.dispose();
     super.dispose();
+  }
+
+  void _onPageAnswered(int index, int score) {
+    Provider.of<QuizState>(context, listen: false).answerQuestion(score);
+    if (index >= 0 && index < _pageAnswered.length) {
+      setState(() => _pageAnswered[index] = true);
+    }
+  }
+
+  void _goToPrevious() {
+    if (_currentPage > 0) {
+      _pageController.previousPage(
+        duration: const Duration(milliseconds: 350),
+        curve: Curves.easeInOut,
+      );
+    }
+  }
+
+  void _goToNext() {
+    final quizState = Provider.of<QuizState>(context, listen: false);
+    final questionCount = quizState.questionCount;
+    if (_currentPage < questionCount - 1) {
+      if (!_pageAnswered[_currentPage]) {
+        _onPageAnswered(_currentPage, 0);
+      }
+      _pageController.nextPage(
+        duration: const Duration(milliseconds: 350),
+        curve: Curves.easeInOut,
+      );
+    } else {
+      if (!_pageAnswered[_currentPage]) {
+        _onPageAnswered(_currentPage, 0);
+      }
+      context.go('/results');
+    }
   }
 
   @override
@@ -51,6 +88,10 @@ class _QuizScreenState extends State<QuizScreen> {
           child: Text('No questions available.'),
         ),
       );
+    }
+
+    if (_pageAnswered.length != questionCount) {
+      _pageAnswered = List.filled(questionCount, false);
     }
 
     return Scaffold(
@@ -98,11 +139,18 @@ class _QuizScreenState extends State<QuizScreen> {
                   question: questions[index],
                   questionNumber: index + 1,
                   totalQuestions: questionCount,
-                  pageController: _pageController,
+                  isAnswered: _pageAnswered[index],
+                  onAnswered: (score) => _onPageAnswered(index, score),
                   isLastQuestion: index == questionCount - 1,
                 );
               },
             ),
+          ),
+          _QuizBottomBar(
+            currentPage: _currentPage,
+            total: questionCount,
+            onPrevious: _goToPrevious,
+            onNext: _goToNext,
           ),
         ],
       ),
@@ -130,6 +178,67 @@ class _QuizScreenState extends State<QuizScreen> {
             child: const Text('Exit'),
           ),
         ],
+      ),
+    );
+  }
+}
+
+/// Fixed bottom bar: Previous | Next (or See results on last question).
+class _QuizBottomBar extends StatelessWidget {
+  const _QuizBottomBar({
+    required this.currentPage,
+    required this.total,
+    required this.onPrevious,
+    required this.onNext,
+  });
+
+  final int currentPage;
+  final int total;
+  final VoidCallback onPrevious;
+  final VoidCallback onNext;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isFirst = currentPage == 0;
+    final isLast = currentPage == total - 1;
+
+    return SafeArea(
+      top: false,
+      child: Container(
+        padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
+        decoration: BoxDecoration(
+          color: theme.colorScheme.surface,
+          border: Border(
+            top: BorderSide(
+              color: theme.colorScheme.outlineVariant.withValues(alpha: 0.5),
+            ),
+          ),
+        ),
+        child: Row(
+          children: [
+            Expanded(
+              child: OutlinedButton(
+                onPressed: isFirst ? null : onPrevious,
+                style: OutlinedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                ),
+                child: const Text('Previous'),
+              ),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              flex: 2,
+              child: FilledButton(
+                onPressed: onNext,
+                style: FilledButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                ),
+                child: Text(isLast ? 'See results' : 'Next'),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -181,18 +290,21 @@ class _ProgressBar extends StatelessWidget {
 }
 
 /// One full page per question: top = question flashcard, bottom = options.
+/// Navigation is handled by the fixed bottom bar in QuizScreen.
 class _QuizPlayerPage extends StatefulWidget {
   final Question question;
   final int questionNumber;
   final int totalQuestions;
-  final PageController pageController;
+  final bool isAnswered;
+  final void Function(int score) onAnswered;
   final bool isLastQuestion;
 
   const _QuizPlayerPage({
     required this.question,
     required this.questionNumber,
     required this.totalQuestions,
-    required this.pageController,
+    required this.isAnswered,
+    required this.onAnswered,
     required this.isLastQuestion,
   });
 
@@ -202,18 +314,14 @@ class _QuizPlayerPage extends StatefulWidget {
 
 class _QuizPlayerPageState extends State<_QuizPlayerPage> {
   int? _selectedAnswerIndex;
-  bool _isAnswered = false;
 
   void _handleAnswer(int selectedIndex, BuildContext context) {
-    if (_isAnswered) return;
+    if (widget.isAnswered) return;
 
-    setState(() {
-      _isAnswered = true;
-      _selectedAnswerIndex = selectedIndex;
-    });
+    setState(() => _selectedAnswerIndex = selectedIndex);
 
     final isCorrect = selectedIndex == widget.question.correctAnswerIndex;
-    Provider.of<QuizState>(context, listen: false).answerQuestion(isCorrect ? 1 : 0);
+    widget.onAnswered(isCorrect ? 1 : 0);
 
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -239,33 +347,6 @@ class _QuizPlayerPageState extends State<_QuizPlayerPage> {
         duration: const Duration(seconds: 2),
       ),
     );
-
-    // Only auto-advance when correct. When wrong, user stays to review the right answer and hint.
-    if (isCorrect) {
-      final router = GoRouter.of(context);
-      Future.delayed(const Duration(milliseconds: 2200), () {
-        if (!mounted) return;
-        if (!widget.isLastQuestion) {
-          widget.pageController.nextPage(
-            duration: const Duration(milliseconds: 350),
-            curve: Curves.easeInOut,
-          );
-        } else {
-          router.go('/results');
-        }
-      });
-    }
-  }
-
-  void _goToNextQuestion(BuildContext context) {
-    if (!widget.isLastQuestion) {
-      widget.pageController.nextPage(
-        duration: const Duration(milliseconds: 350),
-        curve: Curves.easeInOut,
-      );
-    } else {
-      context.go('/results');
-    }
   }
 
   @override
@@ -288,25 +369,10 @@ class _QuizPlayerPageState extends State<_QuizPlayerPage> {
           _OptionsSection(
             question: widget.question,
             selectedAnswerIndex: _selectedAnswerIndex,
-            isAnswered: _isAnswered,
+            isAnswered: widget.isAnswered,
             onAnswer: _handleAnswer,
             useTwoColumns: useTwoColumns,
           ),
-          if (_isAnswered) ...[
-            const SizedBox(height: 20),
-            Semantics(
-              button: true,
-              label: widget.isLastQuestion ? 'See results' : 'Next question',
-              child: FilledButton(
-                onPressed: () => _goToNextQuestion(context),
-                style: FilledButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(vertical: 18),
-                  minimumSize: const Size.fromHeight(56),
-                ),
-                child: Text(widget.isLastQuestion ? 'See results' : 'Next question'),
-              ),
-            ),
-          ],
         ];
 
         if (shortScreen) {
