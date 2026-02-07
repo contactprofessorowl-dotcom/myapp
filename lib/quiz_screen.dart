@@ -12,7 +12,7 @@ const double _kQuestionSectionMinHeight = 200;
 const double _kTwoColumnBreakpoint = 600;
 
 // High-contrast colors for accessibility (WCAG AA+)
-const Color _kCorrectColor = Color(0xFF0D7377);
+const Color _kCorrectColor = Color(0xFF16A34A); // Green for correct
 const Color _kIncorrectColor = Color(0xFFB00020);
 
 class QuizScreen extends StatefulWidget {

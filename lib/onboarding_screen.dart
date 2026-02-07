@@ -48,14 +48,14 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                     title: 'Learn smarter',
                     subtitle:
                         'Flash helps you remember what matters with bite-sized quizzes and friendly hints.',
-                    accent: Color(0xFF0D7377),
+                    accent: Color(0xFF7C3AED),
                   ),
                   _OnboardingPage(
                     icon: Icons.psychology_rounded,
                     title: 'Built for your brain',
                     subtitle:
                         'Flip cards, tap hints, and swipe through questions the way that fits how you learn.',
-                    accent: Color(0xFF0D7377),
+                    accent: Color(0xFF7C3AED),
                   ),
                   _OnboardingPage(
                     icon: Icons.emoji_events_rounded,
@@ -69,7 +69,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                     title: 'Ready when you are',
                     subtitle:
                         'Light or dark mode, any device. Start your first quiz in seconds.',
-                    accent: Color(0xFF0D7377),
+                    accent: Color(0xFF7C3AED),
                   ),
                 ],
               ),

@@ -31,7 +31,7 @@ class _ResultTier {
         title: 'You nailed it!',
         subtitle: 'Strong mastery on this round. You’ve got this topic in your pocket.',
         tagline: 'Every correct answer builds lasting understanding.',
-        heroColor: Color(0xFF0D7377),
+        heroColor: Color(0xFF7C3AED),
       );
     }
     if (percentage >= 70) {
@@ -40,7 +40,7 @@ class _ResultTier {
         title: 'Well done!',
         subtitle: 'You did a great job. Keep going and you’ll keep getting stronger.',
         tagline: 'Consistency is what turns learning into mastery.',
-        heroColor: Color(0xFF0D7377),
+        heroColor: Color(0xFF7C3AED),
       );
     }
     if (percentage >= 50) {

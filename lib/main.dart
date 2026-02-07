@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -19,6 +20,7 @@ import 'settings_screen.dart';
 import 'splash_screen.dart';
 import 'theme.dart';
 import 'vocabulary_cards_screen.dart';
+import 'vocabulary_complete_screen.dart';
 import 'vocabulary_state.dart';
 import 'welcome_screen.dart';
 
@@ -29,6 +31,17 @@ const String _kGeminiApiKey = 'AIzaSyDVICd_uScmQGnTCYOychebZ4UwglybnVM'; // Add 
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
+  // Edge-to-edge: background extends into status bar area (transparent status bar).
+  SystemChrome.setSystemUIOverlayStyle(
+    const SystemUiOverlayStyle(
+      statusBarColor: Colors.transparent,
+      statusBarIconBrightness: Brightness.dark,
+      statusBarBrightness: Brightness.light,
+      systemNavigationBarColor: Colors.white,
+      systemNavigationBarIconBrightness: Brightness.dark,
+      systemNavigationBarDividerColor: Colors.transparent,
+    ),
+  );
   runApp(
     MultiProvider(
       providers: [
@@ -201,6 +214,10 @@ final GoRouter _router = GoRouter(
     GoRoute(
       path: '/vocabulary-cards',
       builder: (_, __) => const VocabularyCardsScreen(),
+    ),
+    GoRoute(
+      path: '/vocabulary-complete',
+      builder: (_, __) => const VocabularyCompleteScreen(),
     ),
   ],
 );

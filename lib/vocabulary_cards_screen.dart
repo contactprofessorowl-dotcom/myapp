@@ -138,7 +138,7 @@ class _VocabularyCardsScreenState extends State<VocabularyCardsScreen> {
                     child: FilledButton(
                       onPressed: () {
                         if (_currentPage >= count - 1) {
-                          context.go('/');
+                          context.go('/vocabulary-complete');
                         } else {
                           _pageController.nextPage(
                             duration: const Duration(milliseconds: 350),

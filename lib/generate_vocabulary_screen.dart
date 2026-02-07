@@ -7,8 +7,8 @@ import 'services/ai_service.dart';
 import 'theme.dart';
 import 'vocabulary_state.dart';
 
-/// Suggested vocabulary topics by level.
-const Map<String, List<String>> _vocabularyTopicsByLevel = {
+/// Suggested vocabulary topics for younger users (by expertise level).
+const Map<String, List<String>> _vocabularyTopicsYounger = {
   'beginner': [
     'Basic vocabulary',
     'World capitals',
@@ -23,7 +23,35 @@ const Map<String, List<String>> _vocabularyTopicsByLevel = {
     'Literature vocabulary',
     'Geography terms',
     'Grammar and writing',
+    'Story words',
+  ],
+  'advanced': [
+    'Academic vocabulary',
+    'Science terminology',
+    'Literature analysis terms',
+    'Geography and culture',
+    'Essay writing',
+    'Current events',
+  ],
+};
+
+/// Suggested vocabulary topics for adults (18+) – age-appropriate.
+const Map<String, List<String>> _vocabularyTopicsAdult = {
+  'beginner': [
+    'World capitals',
+    'General knowledge terms',
+    'History basics',
+    'Science fundamentals',
+    'Geography',
+    'Famous books and authors',
+  ],
+  'intermediate': [
+    'World history terms',
+    'Literature vocabulary',
     'Economics basics',
+    'Biology and health',
+    'Current affairs',
+    'Grammar and writing',
   ],
   'advanced': [
     'Academic vocabulary',
@@ -105,7 +133,10 @@ class _GenerateVocabularyScreenState extends State<GenerateVocabularyScreen> {
     final userData = Provider.of<UserData>(context);
     final ai = Provider.of<AiService>(context);
     final level = userData.expertiseLevel ?? 'intermediate';
-    final suggestions = _vocabularyTopicsByLevel[level] ?? _vocabularyTopicsByLevel['intermediate']!;
+    final age = int.tryParse(userData.age?.trim() ?? '');
+    final isAdult = age != null && age >= 18;
+    final topicMap = isAdult ? _vocabularyTopicsAdult : _vocabularyTopicsYounger;
+    final suggestions = topicMap[level] ?? topicMap['intermediate']!;
 
     return Scaffold(
       appBar: AppBar(

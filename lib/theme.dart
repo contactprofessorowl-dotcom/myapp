@@ -2,9 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-// Flash design system — friendly, accessible, modern quiz app feel
-const Color _primarySeed = Color(0xFF0D7377); // Teal — calm, focus, learning
-const Color _secondarySeed = Color(0xFFF2A541); // Amber — warmth, energy
+// Flash design system — clean, modern, pastel-vibrant (reference: Quizzer-style)
+const Color _primarySeed = Color(0xFF7C3AED); // Purple — primary accent
+const Color _surfaceLight = Color(0xFFFAF9FE); // Very light grey-purple, edge-to-edge
+const Color _onSurfaceDark = Color(0xFF1F2937); // Dark grey for text on light
 
 final TextTheme appTextTheme = TextTheme(
   displayLarge: GoogleFonts.nunito(
@@ -85,37 +86,46 @@ final TextTheme appTextTheme = TextTheme(
   ),
 );
 
-// Light theme — warm, high contrast, easy on the eyes
+// Light theme — clean, pastel-vibrant, background full-bleed to status bar
 final ThemeData lightTheme = ThemeData(
   useMaterial3: true,
   brightness: Brightness.light,
   colorScheme: ColorScheme.fromSeed(
     seedColor: _primarySeed,
-    primary: const Color(0xFF0D7377),
-    secondary: _secondarySeed,
-    surface: const Color(0xFFF8FAF9),
+    primary: const Color(0xFF7C3AED),
+    secondary: const Color(0xFF06B6D4),
+    surface: Colors.white,
     brightness: Brightness.light,
-    error: const Color(0xFFB00020),
+    error: const Color(0xFFDC2626),
   ),
-  scaffoldBackgroundColor: const Color(0xFFF5F3FF), // Soft lavender-white
+  scaffoldBackgroundColor: _surfaceLight,
   textTheme: appTextTheme,
   appBarTheme: AppBarTheme(
     elevation: 0,
-    scrolledUnderElevation: 1,
+    scrolledUnderElevation: 0,
     centerTitle: true,
-    backgroundColor: const Color(0xFF0D7377),
-    foregroundColor: Colors.white,
-    systemOverlayStyle: SystemUiOverlayStyle.light,
+    backgroundColor: Colors.transparent,
+    foregroundColor: _onSurfaceDark,
+    surfaceTintColor: Colors.transparent,
+    systemOverlayStyle: SystemUiOverlayStyle(
+      statusBarColor: Colors.transparent,
+      statusBarIconBrightness: Brightness.dark,
+      statusBarBrightness: Brightness.light,
+      systemNavigationBarColor: Colors.white,
+      systemNavigationBarIconBrightness: Brightness.dark,
+      systemNavigationBarDividerColor: Colors.transparent,
+    ),
     titleTextStyle: GoogleFonts.nunito(
       fontSize: 20,
       fontWeight: FontWeight.w700,
-      color: Colors.white,
+      color: _onSurfaceDark,
     ),
-    iconTheme: const IconThemeData(color: Colors.white, size: 24),
+    iconTheme: const IconThemeData(color: _onSurfaceDark, size: 24),
   ),
   cardTheme: CardThemeData(
     elevation: 0,
     shadowColor: Colors.black.withValues(alpha: 0.06),
+    surfaceTintColor: Colors.transparent,
     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
     color: Colors.white,
     margin: EdgeInsets.zero,
@@ -125,7 +135,7 @@ final ThemeData lightTheme = ThemeData(
     style: ElevatedButton.styleFrom(
       elevation: 0,
       foregroundColor: Colors.white,
-      backgroundColor: const Color(0xFF0D7377),
+      backgroundColor: const Color(0xFF7C3AED),
       padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 18),
       minimumSize: const Size(88, 56),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
@@ -134,8 +144,8 @@ final ThemeData lightTheme = ThemeData(
   ),
   outlinedButtonTheme: OutlinedButtonThemeData(
     style: OutlinedButton.styleFrom(
-      foregroundColor: const Color(0xFF0D7377),
-      side: const BorderSide(color: Color(0xFF0D7377), width: 2),
+      foregroundColor: const Color(0xFF7C3AED),
+      side: const BorderSide(color: Color(0xFF7C3AED), width: 2),
       padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 18),
       minimumSize: const Size(88, 56),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
@@ -144,10 +154,10 @@ final ThemeData lightTheme = ThemeData(
   ),
   bottomNavigationBarTheme: const BottomNavigationBarThemeData(
     backgroundColor: Colors.white,
-    selectedItemColor: Color(0xFF0D7377),
+    selectedItemColor: Color(0xFF7C3AED),
     unselectedItemColor: Color(0xFF6B7280),
     type: BottomNavigationBarType.fixed,
-    elevation: 8,
+    elevation: 0,
   ),
   snackBarTheme: SnackBarThemeData(
     behavior: SnackBarBehavior.floating,
@@ -164,19 +174,20 @@ final ThemeData lightTheme = ThemeData(
     ),
     focusedBorder: OutlineInputBorder(
       borderRadius: BorderRadius.circular(14),
-      borderSide: const BorderSide(color: Color(0xFF0D7377), width: 2),
+      borderSide: const BorderSide(color: Color(0xFF7C3AED), width: 2),
     ),
     contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
     hintStyle: GoogleFonts.nunito(color: Colors.grey.shade600, fontSize: 16),
   ),
 );
 
-/// Accent colors for cards and variety (purple, pink, blue).
+/// Accent colors for cards and variety (pastel-vibrant palette).
 class FlashAccentColors {
   const FlashAccentColors._();
   static const Color purple = Color(0xFF7C3AED);
-  static const Color pink = Color(0xFFDB2777);
-  static const Color blue = Color(0xFF2563EB);
+  static const Color pink = Color(0xFFEC4899);
+  static const Color blue = Color(0xFF06B6D4);
+  static const Color amber = Color(0xFFF59E0B);
 }
 
 // Dark theme — comfortable for evening use
@@ -185,7 +196,7 @@ final ThemeData darkTheme = ThemeData(
   brightness: Brightness.dark,
   colorScheme: ColorScheme.fromSeed(
     seedColor: _primarySeed,
-    primary: const Color(0xFF14B8A6),
+    primary: const Color(0xFF7C3AED),
     secondary: const Color(0xFFFBBF24),
     surface: const Color(0xFF1E293B),
     brightness: Brightness.dark,
@@ -198,11 +209,18 @@ final ThemeData darkTheme = ThemeData(
   ),
   appBarTheme: AppBarTheme(
     elevation: 0,
-    scrolledUnderElevation: 1,
+    scrolledUnderElevation: 0,
     centerTitle: true,
-    backgroundColor: const Color(0xFF0F172A),
+    backgroundColor: Colors.transparent,
     foregroundColor: Colors.white,
-    systemOverlayStyle: SystemUiOverlayStyle.dark,
+    surfaceTintColor: Colors.transparent,
+    systemOverlayStyle: SystemUiOverlayStyle(
+      statusBarColor: Colors.transparent,
+      statusBarIconBrightness: Brightness.light,
+      statusBarBrightness: Brightness.dark,
+      systemNavigationBarColor: Color(0xFF1E293B),
+      systemNavigationBarIconBrightness: Brightness.light,
+    ),
     titleTextStyle: GoogleFonts.nunito(
       fontSize: 20,
       fontWeight: FontWeight.w700,
@@ -221,7 +239,7 @@ final ThemeData darkTheme = ThemeData(
     style: ElevatedButton.styleFrom(
       elevation: 0,
       foregroundColor: const Color(0xFF0F172A),
-      backgroundColor: const Color(0xFF14B8A6),
+      backgroundColor: const Color(0xFF7C3AED),
       padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 18),
       minimumSize: const Size(88, 56),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
@@ -230,8 +248,8 @@ final ThemeData darkTheme = ThemeData(
   ),
   outlinedButtonTheme: OutlinedButtonThemeData(
     style: OutlinedButton.styleFrom(
-      foregroundColor: const Color(0xFF14B8A6),
-      side: const BorderSide(color: Color(0xFF14B8A6), width: 2),
+      foregroundColor: const Color(0xFF7C3AED),
+      side: const BorderSide(color: Color(0xFF7C3AED), width: 2),
       padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 18),
       minimumSize: const Size(88, 56),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
@@ -240,7 +258,7 @@ final ThemeData darkTheme = ThemeData(
   ),
   bottomNavigationBarTheme: const BottomNavigationBarThemeData(
     backgroundColor: Color(0xFF1E293B),
-    selectedItemColor: Color(0xFF14B8A6),
+    selectedItemColor: Color(0xFF7C3AED),
     unselectedItemColor: Color(0xFF94A3B8),
     type: BottomNavigationBarType.fixed,
     elevation: 8,
@@ -261,7 +279,7 @@ final ThemeData darkTheme = ThemeData(
     ),
     focusedBorder: OutlineInputBorder(
       borderRadius: BorderRadius.circular(14),
-      borderSide: const BorderSide(color: Color(0xFF14B8A6), width: 2),
+      borderSide: const BorderSide(color: Color(0xFF7C3AED), width: 2),
     ),
     contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
     hintStyle: GoogleFonts.nunito(color: const Color(0xFF94A3B8), fontSize: 16),

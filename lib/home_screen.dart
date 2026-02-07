@@ -20,10 +20,14 @@ class HomeScreen extends StatelessWidget {
       slivers: [
         SliverAppBar(
           floating: true,
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          surfaceTintColor: Colors.transparent,
           title: Text(
             'Flash',
             style: theme.appBarTheme.titleTextStyle,
           ),
+          iconTheme: theme.appBarTheme.iconTheme,
           actions: [
             IconButton(
               icon: Icon(
