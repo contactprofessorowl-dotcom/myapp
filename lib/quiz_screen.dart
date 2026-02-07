@@ -240,18 +240,32 @@ class _QuizPlayerPageState extends State<_QuizPlayerPage> {
       ),
     );
 
-    final router = GoRouter.of(context);
-    Future.delayed(const Duration(milliseconds: 2200), () {
-      if (!mounted) return;
-      if (!widget.isLastQuestion) {
-        widget.pageController.nextPage(
-          duration: const Duration(milliseconds: 350),
-          curve: Curves.easeInOut,
-        );
-      } else {
-        router.go('/results');
-      }
-    });
+    // Only auto-advance when correct. When wrong, user stays to review the right answer and hint.
+    if (isCorrect) {
+      final router = GoRouter.of(context);
+      Future.delayed(const Duration(milliseconds: 2200), () {
+        if (!mounted) return;
+        if (!widget.isLastQuestion) {
+          widget.pageController.nextPage(
+            duration: const Duration(milliseconds: 350),
+            curve: Curves.easeInOut,
+          );
+        } else {
+          router.go('/results');
+        }
+      });
+    }
+  }
+
+  void _goToNextQuestion(BuildContext context) {
+    if (!widget.isLastQuestion) {
+      widget.pageController.nextPage(
+        duration: const Duration(milliseconds: 350),
+        curve: Curves.easeInOut,
+      );
+    } else {
+      context.go('/results');
+    }
   }
 
   @override
@@ -278,18 +292,18 @@ class _QuizPlayerPageState extends State<_QuizPlayerPage> {
             onAnswer: _handleAnswer,
             useTwoColumns: useTwoColumns,
           ),
-          if (widget.isLastQuestion && _isAnswered) ...[
+          if (_isAnswered) ...[
             const SizedBox(height: 20),
             Semantics(
               button: true,
-              label: 'See results',
+              label: widget.isLastQuestion ? 'See results' : 'Next question',
               child: FilledButton(
-                onPressed: () => context.go('/results'),
+                onPressed: () => _goToNextQuestion(context),
                 style: FilledButton.styleFrom(
                   padding: const EdgeInsets.symmetric(vertical: 18),
                   minimumSize: const Size.fromHeight(56),
                 ),
-                child: const Text('See results'),
+                child: Text(widget.isLastQuestion ? 'See results' : 'Next question'),
               ),
             ),
           ],

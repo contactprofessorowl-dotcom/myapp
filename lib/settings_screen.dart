@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
 import 'providers.dart';
+
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
 
@@ -101,7 +103,7 @@ class SettingsScreen extends StatelessWidget {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                'Professor Owl',
+                                'Flash',
                                 style: theme.textTheme.titleLarge?.copyWith(
                                   fontWeight: FontWeight.w700,
                                 ),
@@ -116,6 +118,29 @@ class SettingsScreen extends StatelessWidget {
                           ),
                         ),
                       ],
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 32),
+              _SectionHeader(title: 'Legal'),
+              const SizedBox(height: 8),
+              _SettingsCard(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    _LegalTile(
+                      icon: Icons.description_rounded,
+                      title: 'Terms & Conditions',
+                      subtitle: 'Usage terms, disclaimers, and liability.',
+                      onTap: () => context.push('/legal/terms'),
+                    ),
+                    const Divider(height: 24),
+                    _LegalTile(
+                      icon: Icons.privacy_tip_rounded,
+                      title: 'Privacy Policy',
+                      subtitle: 'How we collect and use your data.',
+                      onTap: () => context.push('/legal/privacy'),
                     ),
                   ],
                 ),
@@ -168,6 +193,65 @@ class _SettingsCard extends StatelessWidget {
         ),
       ),
       child: child,
+    );
+  }
+}
+
+class _LegalTile extends StatelessWidget {
+  const _LegalTile({
+    required this.icon,
+    required this.title,
+    required this.subtitle,
+    required this.onTap,
+  });
+
+  final IconData icon;
+  final String title;
+  final String subtitle;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(12),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 8),
+          child: Row(
+            children: [
+              Icon(icon, size: 24, color: theme.colorScheme.primary),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: theme.textTheme.titleSmall?.copyWith(
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    Text(
+                      subtitle,
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: theme.colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Icon(
+                Icons.arrow_forward_ios_rounded,
+                size: 16,
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }

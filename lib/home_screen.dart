@@ -16,7 +16,7 @@ class HomeScreen extends StatelessWidget {
         SliverAppBar(
           floating: true,
           title: Text(
-            'Professor Owl',
+            'Flash',
             style: theme.appBarTheme.titleTextStyle,
           ),
           actions: [
@@ -28,13 +28,7 @@ class HomeScreen extends StatelessWidget {
               ),
               onPressed: () =>
                   Provider.of<ThemeProvider>(context, listen: false).toggleTheme(),
-              tooltip: 'Toggle theme',
-            ),
-            IconButton(
-              icon: const Icon(Icons.settings_brightness_rounded),
-              onPressed: () =>
-                  Provider.of<ThemeProvider>(context, listen: false).setSystemTheme(),
-              tooltip: 'Use system theme',
+              tooltip: 'Toggle light / dark mode',
             ),
           ],
         ),
@@ -69,8 +63,8 @@ class HomeScreen extends StatelessWidget {
               _HomeCard(
                 icon: Icons.quiz_rounded,
                 title: 'Start quiz',
-                subtitle: 'Answer questions and see how you do.',
-                onTap: () => context.go('/quiz'),
+                subtitle: 'Generate a quiz with AI or use a sample.',
+                onTap: () => context.go('/generate-quiz'),
                 accentColor: theme.colorScheme.primary,
               ),
               const SizedBox(height: 16),

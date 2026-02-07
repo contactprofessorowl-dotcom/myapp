@@ -19,7 +19,7 @@ class QuizState with ChangeNotifier {
   int _score = 0;
   int get score => _score;
 
-  static const List<Question> _questions = [
+  static const List<Question> _defaultQuestions = [
     Question(
       question: 'What is the capital of France?',
       options: ['Berlin', 'Madrid', 'Paris', 'Rome'],
@@ -45,8 +45,24 @@ class QuizState with ChangeNotifier {
     ),
   ];
 
-  List<Question> get questions => _questions;
-  int get questionCount => _questions.length;
+  List<Question>? _generatedQuestions;
+
+  List<Question> get questions => _generatedQuestions ?? _defaultQuestions;
+  int get questionCount => questions.length;
+
+  bool get hasGeneratedQuestions => _generatedQuestions != null;
+
+  void setGeneratedQuestions(List<Question> q) {
+    _generatedQuestions = q.isNotEmpty ? q : null;
+    _score = 0;
+    notifyListeners();
+  }
+
+  void clearGeneratedQuestions() {
+    _generatedQuestions = null;
+    _score = 0;
+    notifyListeners();
+  }
 
   void answerQuestion(int score) {
     _score += score;

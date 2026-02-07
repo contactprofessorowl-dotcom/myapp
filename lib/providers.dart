@@ -1,13 +1,81 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
+/// Holds the single SharedPreferences instance so we avoid channel calls in redirect.
+class AppPrefs extends ChangeNotifier {
+  SharedPreferences? _prefs;
+  SharedPreferences? get prefs => _prefs;
+  void setPrefs(SharedPreferences p) {
+    _prefs = p;
+    notifyListeners();
+  }
+}
+
+const String _kUserNameKey = 'user_name';
+const String _kUserAgeKey = 'user_age';
+const String _kUserExpertiseKey = 'user_expertise';
+const String _kOnboardingDoneKey = 'onboarding_done';
+
+/// Expertise level for AI-generated content (e.g. quiz difficulty).
+const List<String> kExpertiseLevels = ['beginner', 'intermediate', 'advanced'];
 
 class UserData with ChangeNotifier {
+  String? name;
   String? age;
-  String? location;
+  String? expertiseLevel;
 
-  void setUserData(String age, String location) {
-    this.age = age;
-    this.location = location;
+  SharedPreferences? _prefs;
+
+  bool get hasUserInfo =>
+      (name != null && name!.trim().isNotEmpty) ||
+      (age != null && age!.trim().isNotEmpty);
+
+  /// Call once at app start after SharedPreferences is ready.
+  Future<void> loadFromPrefs(SharedPreferences prefs) async {
+    _prefs = prefs;
+    name = prefs.getString(_kUserNameKey);
+    age = prefs.getString(_kUserAgeKey);
+    expertiseLevel = prefs.getString(_kUserExpertiseKey);
     notifyListeners();
+  }
+
+  void setUserData(String name, String age, [String? expertise]) {
+    this.name = name.trim().isEmpty ? null : name.trim();
+    this.age = age.trim().isEmpty ? null : age.trim();
+    if (expertise != null) expertiseLevel = expertise.trim().isEmpty ? null : expertise;
+    _prefs?.setString(_kUserNameKey, this.name ?? '');
+    _prefs?.setString(_kUserAgeKey, this.age ?? '');
+    if (expertiseLevel != null) _prefs?.setString(_kUserExpertiseKey, expertiseLevel!);
+    notifyListeners();
+  }
+
+  void setExpertiseLevel(String level) {
+    expertiseLevel = level;
+    _prefs?.setString(_kUserExpertiseKey, level);
+    notifyListeners();
+  }
+
+  void clearUserData() {
+    name = null;
+    age = null;
+    expertiseLevel = null;
+    _prefs?.remove(_kUserNameKey);
+    _prefs?.remove(_kUserAgeKey);
+    _prefs?.remove(_kUserExpertiseKey);
+    notifyListeners();
+  }
+}
+
+/// Persists onboarding completion. Used by router redirect.
+class OnboardingState {
+  static const String key = _kOnboardingDoneKey;
+
+  static Future<bool> isComplete(SharedPreferences prefs) async {
+    return prefs.getBool(key) ?? false;
+  }
+
+  static Future<void> setComplete(SharedPreferences prefs) async {
+    await prefs.setBool(key, true);
   }
 }
 

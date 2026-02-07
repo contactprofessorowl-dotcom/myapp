@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
 import 'providers.dart';
@@ -56,7 +57,7 @@ class AccountScreen extends StatelessWidget {
                                   ),
                                   const SizedBox(height: 4),
                                   Text(
-                                    userData.age != null || userData.location != null
+                                    userData.name != null || userData.age != null || userData.expertiseLevel != null
                                         ? 'Tap below to edit'
                                         : 'Add your details (optional)',
                                     style: theme.textTheme.bodyMedium?.copyWith(
@@ -68,20 +69,28 @@ class AccountScreen extends StatelessWidget {
                             ),
                           ],
                         ),
-                        if (userData.age != null || userData.location != null) ...[
+                        if (userData.name != null || userData.age != null || userData.expertiseLevel != null) ...[
                           const SizedBox(height: 20),
                           const Divider(height: 1),
                           const SizedBox(height: 16),
                           _ProfileRow(
-                            icon: Icons.cake_rounded,
-                            label: 'Age',
-                            value: userData.age ?? '—',
+                            icon: Icons.person_rounded,
+                            label: 'Name',
+                            value: userData.name ?? '—',
                           ),
+                          if (userData.age != null && userData.age!.isNotEmpty) ...[
+                            const SizedBox(height: 12),
+                            _ProfileRow(
+                              icon: Icons.cake_rounded,
+                              label: 'Age',
+                              value: userData.age ?? '—',
+                            ),
+                          ],
                           const SizedBox(height: 12),
                           _ProfileRow(
-                            icon: Icons.location_on_rounded,
-                            label: 'Location',
-                            value: userData.location ?? '—',
+                            icon: Icons.school_rounded,
+                            label: 'Expertise level',
+                            value: _expertiseLabel(userData.expertiseLevel ?? 'intermediate'),
                           ),
                         ],
                         const SizedBox(height: 20),
@@ -89,7 +98,7 @@ class AccountScreen extends StatelessWidget {
                           onPressed: () => _showEditProfileDialog(context, userData),
                           icon: const Icon(Icons.edit_rounded, size: 20),
                           label: Text(
-                            userData.age != null || userData.location != null
+                            userData.name != null || userData.age != null || userData.expertiseLevel != null
                                 ? 'Edit profile'
                                 : 'Add profile details',
                           ),
@@ -115,7 +124,7 @@ class AccountScreen extends StatelessWidget {
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      'Your age and location are stored only on this device. Professor Owl does not send your data anywhere.',
+                      'Your name and age are stored only on this device. Flash does not send your data anywhere.',
                       style: theme.textTheme.bodyMedium?.copyWith(
                         color: theme.colorScheme.onSurfaceVariant,
                         height: 1.5,
@@ -124,6 +133,8 @@ class AccountScreen extends StatelessWidget {
                   ],
                 ),
               ),
+              const SizedBox(height: 24),
+              _LogoutSection(),
             ]),
           ),
         ),
@@ -131,54 +142,82 @@ class AccountScreen extends StatelessWidget {
     );
   }
 
+  static String _expertiseLabel(String level) {
+    switch (level) {
+      case 'beginner':
+        return 'Beginner';
+      case 'advanced':
+        return 'Advanced';
+      default:
+        return 'Intermediate';
+    }
+  }
+
   void _showEditProfileDialog(BuildContext context, UserData userData) {
+    final nameController = TextEditingController(text: userData.name ?? '');
     final ageController = TextEditingController(text: userData.age ?? '');
-    final locationController = TextEditingController(text: userData.location ?? '');
+    String expertise = userData.expertiseLevel ?? 'intermediate';
 
     showDialog<void>(
       context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('Edit profile'),
-        content: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextField(
-                controller: ageController,
-                decoration: const InputDecoration(
-                  labelText: 'Age (optional)',
-                  hintText: 'e.g. 25',
+      builder: (ctx) => StatefulBuilder(
+        builder: (context, setDialogState) => AlertDialog(
+          title: const Text('Edit profile'),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextField(
+                  controller: nameController,
+                  decoration: const InputDecoration(
+                    labelText: 'Your name',
+                    hintText: 'e.g. Alex',
+                  ),
+                  textCapitalization: TextCapitalization.words,
                 ),
-                keyboardType: TextInputType.number,
-              ),
-              const SizedBox(height: 16),
-              TextField(
-                controller: locationController,
-                decoration: const InputDecoration(
-                  labelText: 'Location (optional)',
-                  hintText: 'e.g. New York',
+                const SizedBox(height: 16),
+                TextField(
+                  controller: ageController,
+                  decoration: const InputDecoration(
+                    labelText: 'Age (optional)',
+                    hintText: 'e.g. 25',
+                  ),
+                  keyboardType: TextInputType.number,
                 ),
-                textCapitalization: TextCapitalization.words,
-              ),
-            ],
+                const SizedBox(height: 16),
+                DropdownButtonFormField<String>(
+                  value: expertise,
+                  decoration: const InputDecoration(
+                    labelText: 'Expertise level',
+                  ),
+                  items: const [
+                    DropdownMenuItem(value: 'beginner', child: Text('Beginner')),
+                    DropdownMenuItem(value: 'intermediate', child: Text('Intermediate')),
+                    DropdownMenuItem(value: 'advanced', child: Text('Advanced')),
+                  ],
+                  onChanged: (v) => setDialogState(() => expertise = v ?? 'intermediate'),
+                ),
+              ],
+            ),
           ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(ctx).pop(),
+              child: const Text('Cancel'),
+            ),
+            FilledButton(
+              onPressed: () {
+                userData.setUserData(
+                  nameController.text.trim(),
+                  ageController.text.trim(),
+                  expertise,
+                );
+                Navigator.of(ctx).pop();
+              },
+              child: const Text('Save'),
+            ),
+          ],
         ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(),
-            child: const Text('Cancel'),
-          ),
-          FilledButton(
-            onPressed: () {
-              userData.setUserData(
-                ageController.text.trim(),
-                locationController.text.trim(),
-              );
-              Navigator.of(ctx).pop();
-            },
-            child: const Text('Save'),
-          ),
-        ],
       ),
     );
   }
@@ -240,6 +279,76 @@ class _ProfileRow extends StatelessWidget {
           ),
         ),
       ],
+    );
+  }
+}
+
+class _LogoutSection extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final userData = Provider.of<UserData>(context);
+
+    return _AccountCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Text(
+            'Log out',
+            style: theme.textTheme.titleMedium?.copyWith(
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'Clear your profile data and sign out.',
+            style: theme.textTheme.bodyMedium?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+          ),
+          const SizedBox(height: 16),
+          OutlinedButton.icon(
+            onPressed: () => _confirmLogout(context, userData),
+            icon: const Icon(Icons.logout_rounded, size: 20),
+            label: const Text('Log out'),
+            style: OutlinedButton.styleFrom(
+              foregroundColor: theme.colorScheme.error,
+              side: BorderSide(color: theme.colorScheme.error),
+              padding: const EdgeInsets.symmetric(vertical: 14),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _confirmLogout(BuildContext context, UserData userData) {
+    showDialog<void>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Log out?'),
+        content: const Text(
+          'Your profile data (name, age) will be cleared. You will need to enter them again next time.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: () {
+              userData.clearUserData();
+              Navigator.of(ctx).pop();
+              context.go('/welcome');
+            },
+            style: FilledButton.styleFrom(
+              backgroundColor: Theme.of(ctx).colorScheme.error,
+              foregroundColor: Colors.white,
+            ),
+            child: const Text('Log out'),
+          ),
+        ],
+      ),
     );
   }
 }

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-// Professor Owl design system — friendly, accessible, all ages
+// Flash design system — friendly, accessible, all ages
 const Color _primarySeed = Color(0xFF0D7377); // Teal — calm, focus, learning
 const Color _secondarySeed = Color(0xFFF2A541); // Amber — warmth, energy
 

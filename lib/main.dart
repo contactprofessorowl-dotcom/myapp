@@ -1,69 +1,48 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
-import 'quiz_screen.dart';
-import 'results_screen.dart';
-import 'home_screen.dart';
-import 'settings_screen.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
 import 'account_screen.dart';
-import 'theme.dart';
+import 'generate_quiz_screen.dart';
+import 'home_screen.dart';
+import 'legal/privacy_policy_screen.dart';
+import 'legal/terms_screen.dart';
+import 'onboarding_screen.dart';
 import 'providers.dart';
+import 'quiz_screen.dart';
 import 'quiz_state.dart';
+import 'results_screen.dart';
+import 'services/ai_service.dart';
+import 'settings_screen.dart';
+import 'splash_screen.dart';
+import 'theme.dart';
+import 'welcome_screen.dart';
+
+/// Set your Gemini API key here for local development (do not commit this file with a real key).
+/// Get a key at https://aistudio.google.com/apikey
+/// Alternative: run with --dart-define=GEMINI_API_KEY=your_key
+const String _kGeminiApiKey = 'AIzaSyDVICd_uScmQGnTCYOychebZ4UwglybnVM'; // Add your key here; get one at https://aistudio.google.com/apikey
 
 void main() {
+  WidgetsFlutterBinding.ensureInitialized();
   runApp(
     MultiProvider(
       providers: [
-        ChangeNotifierProvider(create: (context) => ThemeProvider()),
-        ChangeNotifierProvider(create: (context) => UserData()),
-        ChangeNotifierProvider(create: (context) => QuizState()),
+        ChangeNotifierProvider(create: (_) => ThemeProvider()),
+        ChangeNotifierProvider(create: (_) => AppPrefs()),
+        ChangeNotifierProvider(create: (_) => UserData()),
+        ChangeNotifierProvider(create: (_) => QuizState()),
+        Provider<AiService>(
+          create: (_) => AiService(
+            apiKey: String.fromEnvironment('GEMINI_API_KEY', defaultValue: _kGeminiApiKey),
+          ),
+        ),
       ],
       child: const MyApp(),
     ),
   );
 }
-
-final GoRouter _router = GoRouter(
-  routes: <RouteBase>[
-    ShellRoute(
-      builder: (BuildContext context, GoRouterState state, Widget child) {
-        return ScaffoldWithNavBar(child: child);
-      },
-      routes: <RouteBase>[
-        GoRoute(
-          path: '/',
-          builder: (BuildContext context, GoRouterState state) {
-            return const HomeScreen();
-          },
-        ),
-        GoRoute(
-          path: '/settings',
-          builder: (BuildContext context, GoRouterState state) {
-            return const SettingsScreen();
-          },
-        ),
-        GoRoute(
-          path: '/account',
-          builder: (BuildContext context, GoRouterState state) {
-            return const AccountScreen();
-          },
-        ),
-      ],
-    ),
-    GoRoute(
-      path: '/quiz',
-      builder: (BuildContext context, GoRouterState state) {
-        return const QuizScreen();
-      },
-    ),
-    GoRoute(
-      path: '/results',
-      builder: (BuildContext context, GoRouterState state) {
-        return const ResultsScreen();
-      },
-    ),
-  ],
-);
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
@@ -72,9 +51,67 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return Consumer<ThemeProvider>(
       builder: (context, themeProvider, child) {
+        return MaterialApp(
+          title: 'Flash',
+          theme: lightTheme,
+          darkTheme: darkTheme,
+          themeMode: themeProvider.themeMode,
+          home: const _AppLoader(),
+        );
+      },
+    );
+  }
+}
+
+/// Loads SharedPreferences and UserData, then shows router or splash.
+class _AppLoader extends StatefulWidget {
+  const _AppLoader();
+
+  @override
+  State<_AppLoader> createState() => _AppLoaderState();
+}
+
+class _AppLoaderState extends State<_AppLoader> {
+  bool _ready = false;
+
+  @override
+  void initState() {
+    super.initState();
+    // Defer until after first frame so platform channel is ready (fixes Android channel-error).
+    WidgetsBinding.instance.addPostFrameCallback((_) => _load());
+  }
+
+  Future<void> _load() async {
+    SharedPreferences? prefs;
+    for (var i = 0; i < 3; i++) {
+      try {
+        prefs = await SharedPreferences.getInstance();
+        break;
+      } catch (e) {
+        if (i == 2) rethrow;
+        await Future<void>.delayed(const Duration(milliseconds: 150));
+      }
+    }
+    if (prefs == null || !mounted) return;
+    Provider.of<AppPrefs>(context, listen: false).setPrefs(prefs);
+    await Provider.of<UserData>(context, listen: false).loadFromPrefs(prefs);
+    if (!mounted) return;
+    // Yield so the transition to the main app happens next frame (reduces "Skipped N frames").
+    await Future<void>.delayed(Duration.zero);
+    if (!mounted) return;
+    setState(() => _ready = true);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (!_ready) {
+      return const SplashScreen();
+    }
+    return Consumer<ThemeProvider>(
+      builder: (context, themeProvider, _) {
         return MaterialApp.router(
           routerConfig: _router,
-          title: 'Professor Owl',
+          title: 'Flash',
           theme: lightTheme,
           darkTheme: darkTheme,
           themeMode: themeProvider.themeMode,
@@ -83,6 +120,78 @@ class MyApp extends StatelessWidget {
     );
   }
 }
+
+String? _redirect(BuildContext context, GoRouterState state) {
+  final prefs = Provider.of<AppPrefs>(context, listen: false).prefs;
+  if (prefs == null) return null;
+
+  final onboardingDone = prefs.getBool(OnboardingState.key) ?? false;
+  final userName = prefs.getString('user_name') ?? '';
+
+  final path = state.uri.path;
+
+  if (!onboardingDone && path != '/onboarding') {
+    return '/onboarding';
+  }
+  if (onboardingDone && userName.trim().isEmpty && path != '/welcome' && path != '/onboarding' && !path.startsWith('/legal')) {
+    return '/welcome';
+  }
+  return null;
+}
+
+final GoRouter _router = GoRouter(
+  initialLocation: '/',
+  redirect: _redirect,
+  routes: <RouteBase>[
+    GoRoute(
+      path: '/onboarding',
+      builder: (_, __) => const OnboardingScreen(),
+    ),
+    GoRoute(
+      path: '/welcome',
+      builder: (_, __) => const WelcomeScreen(),
+    ),
+    ShellRoute(
+      builder: (BuildContext context, GoRouterState state, Widget child) {
+        return ScaffoldWithNavBar(child: child);
+      },
+      routes: <RouteBase>[
+        GoRoute(
+          path: '/',
+          builder: (_, __) => const HomeScreen(),
+        ),
+        GoRoute(
+          path: '/settings',
+          builder: (_, __) => const SettingsScreen(),
+        ),
+        GoRoute(
+          path: '/account',
+          builder: (_, __) => const AccountScreen(),
+        ),
+        GoRoute(
+          path: '/legal/terms',
+          builder: (_, __) => const TermsScreen(),
+        ),
+        GoRoute(
+          path: '/legal/privacy',
+          builder: (_, __) => const PrivacyPolicyScreen(),
+        ),
+        GoRoute(
+          path: '/generate-quiz',
+          builder: (_, __) => const GenerateQuizScreen(),
+        ),
+      ],
+    ),
+    GoRoute(
+      path: '/quiz',
+      builder: (_, __) => const QuizScreen(),
+    ),
+    GoRoute(
+      path: '/results',
+      builder: (_, __) => const ResultsScreen(),
+    ),
+  ],
+);
 
 class ScaffoldWithNavBar extends StatelessWidget {
   const ScaffoldWithNavBar({required this.child, super.key});
