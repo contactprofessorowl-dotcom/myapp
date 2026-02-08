@@ -1,37 +1,41 @@
 import 'dart:convert';
 
+import 'package:firebase_ai/firebase_ai.dart';
 import 'package:flutter/foundation.dart';
-import 'package:google_generative_ai/google_generative_ai.dart';
 
 import '../quiz_state.dart';
 import '../vocabulary_state.dart';
 
-/// Centralized service for all AI (Gemini) features.
+/// Centralized service for all AI (Gemini) features using Firebase AI Logic.
 ///
-/// To enable: run with `--dart-define=GEMINI_API_KEY=your_key`
-/// Get a key at https://aistudio.google.com/apikey
-/// Use for: question generation now; pronunciations, vocabulary, etc. later.
+/// The API key is NOT stored in the app. Configure the Gemini API in the
+/// [Firebase Console](https://firebase.google.com/docs/ai-logic/get-started):
+/// Firebase AI Logic → Get started → set up Gemini Developer API.
+/// Do not add the Gemini API key to your app codebase.
 class AiService {
-  AiService({required this.apiKey})
-      : _model = apiKey.isNotEmpty
-            ? GenerativeModel(
-                model: 'gemini-2.5-flash',
-                apiKey: apiKey,
-                generationConfig: GenerationConfig(
-                  temperature: 0.7,
-                  maxOutputTokens: 8192,
-                  responseMimeType: 'application/json',
-                ),
-              )
-            : null;
+  AiService() : _model = _createModel();
 
-  final String apiKey;
+  static GenerativeModel? _createModel() {
+    try {
+      return FirebaseAI.googleAI().generativeModel(
+        model: 'gemini-2.5-flash',
+        generationConfig: GenerationConfig(
+          temperature: 0.7,
+          maxOutputTokens: 8192,
+          responseMimeType: 'application/json',
+        ),
+      );
+    } catch (_) {
+      return null;
+    }
+  }
+
   final GenerativeModel? _model;
 
-  bool get isAvailable => _model != null && apiKey.isNotEmpty;
+  bool get isAvailable => _model != null;
 
   /// Generate quiz questions using Gemini. Adapts to age and expertise level.
-  /// Returns empty list if API key is missing or request fails.
+  /// Returns fallback list if Firebase AI is unavailable or request fails.
   Future<List<Question>> generateQuestions({
     required String topic,
     String? age,
@@ -39,7 +43,7 @@ class AiService {
     int count = 5,
   }) async {
     if (_model == null) {
-      if (kDebugMode) debugPrint('[AiService] No model: API key is empty. Using fallback questions.');
+      if (kDebugMode) debugPrint('[AiService] No model (Firebase AI not configured). Using fallback questions.');
       return _fallbackQuestions(topic);
     }
 
@@ -69,14 +73,13 @@ Example (real content):
 
     try {
       if (kDebugMode) debugPrint('[AiService] Calling Gemini for topic: $topic');
-      final response = await _model.generateContent([Content.text(prompt)]);
+      final response = await _model!.generateContent([Content.text(prompt)]);
       final text = response.text?.trim();
       if (text == null || text.isEmpty) {
         if (kDebugMode) debugPrint('[AiService] Empty response from Gemini. Using fallback.');
         return _fallbackQuestions(topic);
       }
 
-      // Strip markdown code block if present
       var jsonStr = text;
       if (jsonStr.startsWith('```')) {
         jsonStr = jsonStr
@@ -170,7 +173,7 @@ Example (real content):
   }
 
   /// Generate vocabulary flashcards for a topic. Each card has a definition (side A) and a term, 1–2 words (side B).
-  /// Returns empty list if API key is missing or request fails.
+  /// Returns fallback list if Firebase AI is unavailable or request fails.
   Future<List<VocabularyCard>> generateVocabulary({
     required String topic,
     String? age,
@@ -178,7 +181,7 @@ Example (real content):
     int count = 10,
   }) async {
     if (_model == null) {
-      if (kDebugMode) debugPrint('[AiService] No model: API key is empty. Using fallback vocabulary.');
+      if (kDebugMode) debugPrint('[AiService] No model (Firebase AI not configured). Using fallback vocabulary.');
       return _fallbackVocabulary(topic);
     }
 
@@ -205,7 +208,7 @@ Example:
 
     try {
       if (kDebugMode) debugPrint('[AiService] Calling Gemini for vocabulary topic: $topic');
-      final response = await _model.generateContent([Content.text(prompt)]);
+      final response = await _model!.generateContent([Content.text(prompt)]);
       final text = response.text?.trim();
       if (text == null || text.isEmpty) {
         if (kDebugMode) debugPrint('[AiService] Empty response. Using fallback vocabulary.');
@@ -250,7 +253,4 @@ Example:
       VocabularyCard(definition: 'Something you should remember about $topic.', term: 'Important point'),
     ];
   }
-
-  // --- Placeholders for future AI features ---
-  // Future<String> getPronunciation(String word) async => ...
 }

@@ -31,11 +31,6 @@ import 'vocabulary_complete_screen.dart';
 import 'vocabulary_state.dart';
 import 'welcome_screen.dart';
 
-/// Set your Gemini API key here for local development (do not commit this file with a real key).
-/// Get a key at https://aistudio.google.com/apikey
-/// Alternative: run with --dart-define=GEMINI_API_KEY=your_key
-const String _kGeminiApiKey = 'AIzaSyDVICd_uScmQGnTCYOychebZ4UwglybnVM'; // Add your key here; get one at https://aistudio.google.com/apikey
-
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
@@ -73,11 +68,7 @@ Future<void> main() async {
         ChangeNotifierProvider(create: (_) => QuizState()),
         ChangeNotifierProvider(create: (_) => VocabularyState()),
         Provider<FirebaseService>(create: (_) => FirebaseService()),
-        Provider<AiService>(
-          create: (_) => AiService(
-            apiKey: String.fromEnvironment('GEMINI_API_KEY', defaultValue: _kGeminiApiKey),
-          ),
-        ),
+        Provider<AiService>(create: (_) => AiService()),
       ],
       child: const MyApp(),
     ),
