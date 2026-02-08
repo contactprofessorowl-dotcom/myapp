@@ -39,6 +39,7 @@ dependencies:
   go_router: ^17.1.0
   shared_preferences: ^2.2.3
   package_info_plus: ^8.1.2
+  flutter_tts: ^4.2.5
 
   # Firebase (AI via Firebase AI Logic — no API key in app; configure in Firebase Console)
   firebase_ai: ^2.3.0

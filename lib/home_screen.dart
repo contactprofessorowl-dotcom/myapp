@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
+import 'progress_state.dart';
 import 'providers.dart';
 import 'theme.dart';
 
@@ -54,6 +55,8 @@ class HomeScreen extends StatelessWidget {
                     color: theme.colorScheme.onSurface,
                   ),
                 ),
+                const SizedBox(height: 20),
+                _ProgressCard(),
                 const SizedBox(height: 24),
                 _HeroStartCard(onTap: () => context.go('/generate-quiz')),
                 const SizedBox(height: 28),
@@ -91,6 +94,104 @@ class HomeScreen extends StatelessWidget {
                 const SizedBox(height: 32),
               ],
             ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+/// Compact progress card: level, points, streak, daily goal. Accessible labels.
+class _ProgressCard extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final progress = Provider.of<ProgressState>(context);
+    final level = progress.level;
+    final points = progress.totalPoints;
+    final streak = progress.currentStreak;
+    final goalDone = progress.dailyGoalDone;
+
+    return Semantics(
+      label: 'Your progress. Level $level. $points points. $streak day streak. '
+          'Today\'s goal: ${goalDone ? "Done" : "Complete one quiz"}.',
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+        decoration: BoxDecoration(
+          color: theme.cardTheme.color,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: theme.colorScheme.outlineVariant.withValues(alpha: 0.5),
+          ),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Your progress',
+              style: theme.textTheme.titleSmall?.copyWith(
+                fontWeight: FontWeight.w700,
+                color: theme.colorScheme.primary,
+              ),
+            ),
+            const SizedBox(height: 12),
+            Wrap(
+              spacing: 20,
+              runSpacing: 12,
+              children: [
+                _ProgressChip(
+                  icon: Icons.military_tech_rounded,
+                  label: 'Level $level',
+                  theme: theme,
+                ),
+                _ProgressChip(
+                  icon: Icons.star_rounded,
+                  label: '$points points',
+                  theme: theme,
+                ),
+                _ProgressChip(
+                  icon: Icons.local_fire_department_rounded,
+                  label: streak == 0 ? 'No streak yet' : '$streak day streak',
+                  theme: theme,
+                ),
+                _ProgressChip(
+                  icon: goalDone ? Icons.check_circle_rounded : Icons.flag_rounded,
+                  label: goalDone ? "Today's goal done" : "Today's goal: 1 quiz",
+                  theme: theme,
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _ProgressChip extends StatelessWidget {
+  const _ProgressChip({
+    required this.icon,
+    required this.label,
+    required this.theme,
+  });
+
+  final IconData icon;
+  final String label;
+  final ThemeData theme;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(icon, size: 22, color: theme.colorScheme.primary),
+        const SizedBox(width: 6),
+        Text(
+          label,
+          style: theme.textTheme.bodyMedium?.copyWith(
+            fontWeight: FontWeight.w600,
+            color: theme.colorScheme.onSurface,
           ),
         ),
       ],

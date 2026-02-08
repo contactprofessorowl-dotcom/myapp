@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
+import 'progress_state.dart';
 import 'providers.dart';
 import 'quiz_state.dart';
 import 'theme.dart';
@@ -62,8 +63,35 @@ class _ResultTier {
   }
 }
 
-class ResultsScreen extends StatelessWidget {
+class ResultsScreen extends StatefulWidget {
   const ResultsScreen({super.key});
+
+  @override
+  State<ResultsScreen> createState() => _ResultsScreenState();
+}
+
+class _ResultsScreenState extends State<ResultsScreen> {
+  int? _pointsEarned;
+  List<String> _newBadgeIds = [];
+  bool _recorded = false;
+
+  void _recordProgress(BuildContext context) {
+    if (_recorded) return;
+    _recorded = true;
+    final quizState = Provider.of<QuizState>(context, listen: false);
+    final progress = Provider.of<ProgressState>(context, listen: false);
+    final score = quizState.score;
+    final total = quizState.questionCount;
+    if (total <= 0) return;
+    final earned = score * kPointsPerCorrect + (score == total ? kPerfectQuizBonus : 0);
+    final newBadges = progress.recordQuizCompleted(score, total);
+    if (mounted) {
+      setState(() {
+        _pointsEarned = earned;
+        _newBadgeIds = newBadges;
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -74,6 +102,8 @@ class ResultsScreen extends StatelessWidget {
     final percentage = total > 0 ? (score / total * 100).round() : 0;
     final tier = _ResultTier.forPercentage(percentage);
     final heroColor = tier.heroColor ?? theme.colorScheme.primary;
+
+    WidgetsBinding.instance.addPostFrameCallback((_) => _recordProgress(context));
 
     return Scaffold(
       appBar: AppBar(
@@ -172,6 +202,65 @@ class ResultsScreen extends StatelessWidget {
                       ),
                       textAlign: TextAlign.center,
                     ),
+                    if (_pointsEarned != null) ...[
+                      const SizedBox(height: 16),
+                      Semantics(
+                        label: 'You earned $_pointsEarned points',
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                          decoration: BoxDecoration(
+                            color: theme.colorScheme.primaryContainer.withValues(alpha: 0.4),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(Icons.star_rounded, size: 22, color: theme.colorScheme.primary),
+                              const SizedBox(width: 8),
+                              Text(
+                                'You earned +$_pointsEarned points',
+                                style: theme.textTheme.titleSmall?.copyWith(
+                                  fontWeight: FontWeight.w600,
+                                  color: theme.colorScheme.onSurface,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
+                    if (_newBadgeIds.isNotEmpty) ...[
+                      const SizedBox(height: 12),
+                      ..._newBadgeIds.map((id) {
+                        final a = Achievement.byId(id);
+                        if (a == null) return const SizedBox.shrink();
+                        return Padding(
+                          padding: const EdgeInsets.only(bottom: 8),
+                          child: Semantics(
+                            label: 'New badge: ${a.name}. ${a.description}',
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(a.icon, size: 24, color: theme.colorScheme.primary),
+                                const SizedBox(width: 8),
+                                Flexible(
+                                  child: Text(
+                                    'New badge: ${a.name}',
+                                    style: theme.textTheme.titleSmall?.copyWith(
+                                      fontWeight: FontWeight.w600,
+                                      color: theme.colorScheme.primary,
+                                    ),
+                                    textAlign: TextAlign.center,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        );
+                      }),
+                    ],
                     const Spacer(),
                     Semantics(
                       button: true,

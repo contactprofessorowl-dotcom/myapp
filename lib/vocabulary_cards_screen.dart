@@ -1,6 +1,7 @@
 import 'dart:math';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_tts/flutter_tts.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
@@ -200,6 +201,7 @@ class _VocabularyFlashcard extends StatefulWidget {
 class _VocabularyFlashcardState extends State<_VocabularyFlashcard>
     with SingleTickerProviderStateMixin {
   late AnimationController _controller;
+  final FlutterTts _tts = FlutterTts();
 
   @override
   void initState() {
@@ -214,6 +216,11 @@ class _VocabularyFlashcardState extends State<_VocabularyFlashcard>
   void dispose() {
     _controller.dispose();
     super.dispose();
+  }
+
+  Future<void> _speak(String text) async {
+    await _tts.stop();
+    await _tts.speak(text);
   }
 
   void _flip() {
@@ -258,6 +265,7 @@ class _VocabularyFlashcardState extends State<_VocabularyFlashcard>
                         label: 'Definition',
                         text: widget.card.definition,
                         icon: Icons.description_rounded,
+                        onSpeak: () => _speak(widget.card.definition),
                       )
                     : Transform(
                         transform: Matrix4.identity()..rotateY(pi),
@@ -268,6 +276,7 @@ class _VocabularyFlashcardState extends State<_VocabularyFlashcard>
                           label: 'Term',
                           text: widget.card.term,
                           icon: Icons.label_rounded,
+                          onSpeak: () => _speak(widget.card.term),
                         ),
                       ),
               );
@@ -284,6 +293,7 @@ class _VocabularyFlashcardState extends State<_VocabularyFlashcard>
     required String label,
     required String text,
     required IconData icon,
+    VoidCallback? onSpeak,
   }) {
     return Container(
       width: double.infinity,
@@ -319,7 +329,30 @@ class _VocabularyFlashcardState extends State<_VocabularyFlashcard>
                     color: theme.colorScheme.onSurfaceVariant,
                   ),
                 ),
-                Icon(icon, size: 22, color: theme.colorScheme.primary),
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    if (onSpeak != null)
+                      Semantics(
+                        label: 'Play text aloud',
+                        button: true,
+                        child: IconButton(
+                          icon: Icon(
+                            Icons.volume_up_rounded,
+                            size: 24,
+                            color: theme.colorScheme.primary,
+                          ),
+                          onPressed: onSpeak,
+                          tooltip: 'Play audio',
+                          style: IconButton.styleFrom(
+                            minimumSize: const Size(44, 44),
+                            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                          ),
+                        ),
+                      ),
+                    Icon(icon, size: 22, color: theme.colorScheme.primary),
+                  ],
+                ),
               ],
             ),
             const SizedBox(height: 16),

@@ -72,7 +72,7 @@ class GenerateQuizScreen extends StatefulWidget {
 
 class _GenerateQuizScreenState extends State<GenerateQuizScreen> {
   final _topicController = TextEditingController();
-  static const int _defaultCount = 5;
+  static const int _defaultCount = 10;
   bool _isLoading = false;
   String? _error;
 

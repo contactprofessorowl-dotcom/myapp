@@ -2,6 +2,9 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
+
+import 'progress_state.dart';
 
 /// Joyful completion screen with colorful confetti papers scattering from the top.
 class VocabularyCompleteScreen extends StatefulWidget {
@@ -17,6 +20,22 @@ class _VocabularyCompleteScreenState extends State<VocabularyCompleteScreen>
   late AnimationController _controller;
   late List<_ConfettiParticle> _particles;
   final Random _random = Random();
+  int? _pointsEarned;
+  List<String> _newBadgeIds = [];
+  bool _recorded = false;
+
+  void _recordProgress(BuildContext context) {
+    if (_recorded) return;
+    _recorded = true;
+    final progress = Provider.of<ProgressState>(context, listen: false);
+    final newBadges = progress.recordFlashcardSetCompleted();
+    if (mounted) {
+      setState(() {
+        _pointsEarned = kPointsPerFlashcardSet;
+        _newBadgeIds = newBadges;
+      });
+    }
+  }
 
   static const List<Color> _colors = [
     Color(0xFFE53935), // red
@@ -63,6 +82,8 @@ class _VocabularyCompleteScreenState extends State<VocabularyCompleteScreen>
     final theme = Theme.of(context);
     final size = MediaQuery.sizeOf(context);
 
+    WidgetsBinding.instance.addPostFrameCallback((_) => _recordProgress(context));
+
     return Scaffold(
       body: Stack(
         children: [
@@ -97,6 +118,53 @@ class _VocabularyCompleteScreenState extends State<VocabularyCompleteScreen>
                     ),
                     textAlign: TextAlign.center,
                   ),
+                  if (_pointsEarned != null) ...[
+                    const SizedBox(height: 20),
+                    Semantics(
+                      label: 'You earned $_pointsEarned points',
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(Icons.star_rounded, size: 22, color: theme.colorScheme.primary),
+                          const SizedBox(width: 8),
+                          Text(
+                            'You earned +$_pointsEarned points',
+                            style: theme.textTheme.titleSmall?.copyWith(
+                              fontWeight: FontWeight.w600,
+                              color: theme.colorScheme.onSurface,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                  if (_newBadgeIds.isNotEmpty) ...[
+                    const SizedBox(height: 12),
+                    ..._newBadgeIds.map((id) {
+                      final a = Achievement.byId(id);
+                      if (a == null) return const SizedBox.shrink();
+                      return Padding(
+                        padding: const EdgeInsets.only(bottom: 8),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(a.icon, size: 24, color: theme.colorScheme.primary),
+                            const SizedBox(width: 8),
+                            Text(
+                              'New badge: ${a.name}',
+                              style: theme.textTheme.titleSmall?.copyWith(
+                                fontWeight: FontWeight.w600,
+                                color: theme.colorScheme.primary,
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
+                          ],
+                        ),
+                      );
+                    }),
+                  ],
                   const Spacer(),
                   SizedBox(
                     width: double.infinity,

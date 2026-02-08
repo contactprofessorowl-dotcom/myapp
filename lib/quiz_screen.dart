@@ -524,7 +524,7 @@ class _QuestionFlashcardState extends State<_QuestionFlashcard>
                       hintLabelColor: hintLabelColor,
                       text: widget.questionText,
                       label: 'Tap to see hint',
-                      icon: Icons.lightbulb_outline_rounded,
+                      icon: Icons.tips_and_updates_rounded,
                     )
                   : Transform(
                       transform: Matrix4.identity()..rotateY(pi),
@@ -536,7 +536,7 @@ class _QuestionFlashcardState extends State<_QuestionFlashcard>
                         hintLabelColor: hintLabelColor,
                         text: widget.hintText,
                         label: 'Tap to see question',
-                        icon: Icons.help_outline_rounded,
+                        icon: Icons.tips_and_updates_rounded,
                       ),
                     ),
             );

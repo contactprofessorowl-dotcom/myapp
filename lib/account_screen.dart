@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
+import 'progress_state.dart';
 import 'providers.dart';
 
 class AccountScreen extends StatelessWidget {
@@ -110,6 +111,108 @@ class AccountScreen extends StatelessWidget {
                     ),
                   );
                 },
+              ),
+              const SizedBox(height: 24),
+              Consumer<ProgressState>(
+                builder: (context, progress, _) => _AccountCard(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Your progress',
+                        style: theme.textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      _ProfileRow(
+                        icon: Icons.military_tech_rounded,
+                        label: 'Level',
+                        value: '${progress.level}',
+                      ),
+                      const SizedBox(height: 12),
+                      _ProfileRow(
+                        icon: Icons.star_rounded,
+                        label: 'Total points',
+                        value: '${progress.totalPoints}',
+                      ),
+                      const SizedBox(height: 12),
+                      _ProfileRow(
+                        icon: Icons.local_fire_department_rounded,
+                        label: 'Day streak',
+                        value: progress.currentStreak == 0
+                            ? 'None yet'
+                            : '${progress.currentStreak} days',
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(height: 24),
+              Consumer<ProgressState>(
+                builder: (context, progress, _) => _AccountCard(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Badges',
+                        style: theme.textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        'Earn badges by completing quizzes and flashcards.',
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          color: theme.colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      ...Achievement.all.map((a) {
+                        final unlocked = progress.unlockedAchievementIds.contains(a.id);
+                        return Padding(
+                          padding: const EdgeInsets.only(bottom: 12),
+                          child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Icon(
+                                unlocked ? a.icon : Icons.lock_outline_rounded,
+                                size: 28,
+                                color: unlocked
+                                    ? theme.colorScheme.primary
+                                    : theme.colorScheme.onSurfaceVariant,
+                              ),
+                              const SizedBox(width: 16),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      a.name,
+                                      style: theme.textTheme.titleSmall?.copyWith(
+                                        fontWeight: FontWeight.w600,
+                                        color: unlocked
+                                            ? theme.colorScheme.onSurface
+                                            : theme.colorScheme.onSurfaceVariant,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 2),
+                                    Text(
+                                      a.description,
+                                      style: theme.textTheme.bodySmall?.copyWith(
+                                        color: theme.colorScheme.onSurfaceVariant,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                        );
+                      }),
+                    ],
+                  ),
+                ),
               ),
               const SizedBox(height: 24),
               _AccountCard(

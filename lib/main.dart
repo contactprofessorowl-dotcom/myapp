@@ -17,6 +17,7 @@ import 'home_screen.dart';
 import 'legal/privacy_policy_screen.dart';
 import 'legal/terms_screen.dart';
 import 'onboarding_screen.dart';
+import 'progress_state.dart';
 import 'providers.dart';
 import 'quiz_screen.dart';
 import 'quiz_state.dart';
@@ -67,6 +68,7 @@ Future<void> main() async {
         ChangeNotifierProvider(create: (_) => UserData()),
         ChangeNotifierProvider(create: (_) => QuizState()),
         ChangeNotifierProvider(create: (_) => VocabularyState()),
+        ChangeNotifierProvider(create: (_) => ProgressState()),
         Provider<FirebaseService>(create: (_) => FirebaseService()),
         Provider<AiService>(create: (_) => AiService()),
       ],
@@ -126,6 +128,7 @@ class _AppLoaderState extends State<_AppLoader> {
     if (prefs == null || !mounted) return;
     Provider.of<AppPrefs>(context, listen: false).setPrefs(prefs);
     await Provider.of<UserData>(context, listen: false).loadFromPrefs(prefs);
+    await Provider.of<ProgressState>(context, listen: false).loadFromPrefs(prefs);
     if (!mounted) return;
     // Yield so the transition to the main app happens next frame (reduces "Skipped N frames").
     await Future<void>.delayed(Duration.zero);
