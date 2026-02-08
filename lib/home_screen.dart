@@ -72,28 +72,69 @@ class HomeScreen extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 16),
-                _HomeCard(
-                  icon: Icons.quiz_rounded,
-                  title: 'Check your knowledge',
-                  subtitle: 'Pick a topic and play. Quizzes adapt to your level.',
-                  onTap: () => context.go('/generate-quiz'),
-                  accentColor: FlashAccentColors.purple,
-                ),
-                const SizedBox(height: 12),
-                _HomeCard(
-                  icon: Icons.menu_book_rounded,
-                  title: 'Check your vocabulary',
-                  subtitle: 'Flashcards with definitions and terms by topic.',
-                  onTap: () => context.go('/generate-vocabulary'),
-                  accentColor: FlashAccentColors.blue,
-                ),
-                const SizedBox(height: 12),
-                _HomeCard(
-                  icon: Icons.record_voice_over_rounded,
-                  title: 'Check your pronunciation',
-                  subtitle: 'Coming soon.',
-                  onTap: null,
-                  accentColor: Theme.of(context).colorScheme.onSurfaceVariant,
+                LayoutBuilder(
+                  builder: (context, constraints) {
+                    if (constraints.maxWidth > 600) {
+                      return GridView.count(
+                        shrinkWrap: true,
+                        physics: const NeverScrollableScrollPhysics(),
+                        crossAxisCount: 2,
+                        mainAxisSpacing: 12,
+                        crossAxisSpacing: 12,
+                        childAspectRatio: 2.5,
+                        children: [
+                          _HomeCard(
+                            icon: Icons.quiz_rounded,
+                            title: 'Check your knowledge',
+                            subtitle: 'Pick a topic and play. Quizzes adapt to your level.',
+                            onTap: () => context.go('/generate-quiz'),
+                            accentColor: FlashAccentColors.purple,
+                          ),
+                          _HomeCard(
+                            icon: Icons.menu_book_rounded,
+                            title: 'Check your vocabulary',
+                            subtitle: 'Flashcards with definitions and terms by topic.',
+                            onTap: () => context.go('/generate-vocabulary'),
+                            accentColor: FlashAccentColors.blue,
+                          ),
+                          _HomeCard(
+                            icon: Icons.record_voice_over_rounded,
+                            title: 'Check your pronunciation',
+                            subtitle: 'Coming soon.',
+                            onTap: null,
+                            accentColor: Theme.of(context).colorScheme.onSurfaceVariant,
+                          ),
+                        ],
+                      );
+                    }
+                    return Column(
+                      children: [
+                        _HomeCard(
+                          icon: Icons.quiz_rounded,
+                          title: 'Check your knowledge',
+                          subtitle: 'Pick a topic and play. Quizzes adapt to your level.',
+                          onTap: () => context.go('/generate-quiz'),
+                          accentColor: FlashAccentColors.purple,
+                        ),
+                        const SizedBox(height: 12),
+                        _HomeCard(
+                          icon: Icons.menu_book_rounded,
+                          title: 'Check your vocabulary',
+                          subtitle: 'Flashcards with definitions and terms by topic.',
+                          onTap: () => context.go('/generate-vocabulary'),
+                          accentColor: FlashAccentColors.blue,
+                        ),
+                        const SizedBox(height: 12),
+                        _HomeCard(
+                          icon: Icons.record_voice_over_rounded,
+                          title: 'Check your pronunciation',
+                          subtitle: 'Coming soon.',
+                          onTap: null,
+                          accentColor: Theme.of(context).colorScheme.onSurfaceVariant,
+                        ),
+                      ],
+                    );
+                  },
                 ),
                 const SizedBox(height: 32),
               ],

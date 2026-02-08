@@ -277,11 +277,52 @@ class ScaffoldWithNavBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final index = _selectedIndex(context);
+    final width = MediaQuery.sizeOf(context).width;
+
+    if (width >= 800) {
+      return Scaffold(
+        body: SafeArea(
+          top: false,
+          child: Row(
+            children: [
+              NavigationRail(
+                selectedIndex: index,
+                onDestinationSelected: (int i) => context.go(_destinations[i].path),
+                labelType: NavigationRailLabelType.all,
+                groupAlignment: 0.0,
+                destinations: _destinations
+                    .map((d) => NavigationRailDestination(
+                          icon: Icon(d.icon),
+                          selectedIcon: Icon(d.icon),
+                          label: Text(d.label),
+                        ))
+                    .toList(),
+              ),
+              const VerticalDivider(thickness: 1, width: 1),
+              Expanded(
+                child: Center(
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 800),
+                    child: child,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
     return Scaffold(
       body: SafeArea(
         top: true,
         bottom: false,
-        child: child,
+        child: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 800),
+            child: child,
+          ),
+        ),
       ),
       bottomNavigationBar: NavigationBar(
         selectedIndex: index,
