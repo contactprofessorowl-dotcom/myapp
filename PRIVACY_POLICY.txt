@@ -1,0 +1,63 @@
+PRIVACY POLICY — Flash
+
+Last updated: 2025
+
+——————————————————————————————————————————————
+
+1. Introduction
+
+Flash ("we", "our", or "the App") is committed to protecting your privacy. This Privacy Policy explains what information we collect, how we use it, and your choices regarding that information.
+
+——————————————————————————————————————————————
+
+2. Information We Collect
+
+We may collect: (a) Information you provide, such as your name and age when you set up your profile; (b) Quiz progress and scores stored locally on your device; (c) Technical data such as device type and app version for compatibility and support. Profile data (name, age) is stored on your device using local storage (e.g. SharedPreferences) and is not transmitted to our servers unless you use features that require it (e.g. syncing or AI-generated content).
+
+——————————————————————————————————————————————
+
+3. How We Use Your Information
+
+We use your information to: personalize your experience within the App; provide and improve the quiz and learning features; and comply with legal obligations. We do not sell your personal information to third parties.
+
+——————————————————————————————————————————————
+
+4. AI and Third-Party Services
+
+The App may use artificial intelligence (AI) or third-party services to generate or process quiz content. When we do so, we may send necessary data (e.g. topic or difficulty) to such services in accordance with their respective privacy and data processing terms. We select providers that commit to appropriate data handling practices. No personal identification (such as your name or age) is required for quiz generation unless you choose to include it. You can avoid AI-processed content by using only locally stored or pre-defined quizzes, where available.
+
+——————————————————————————————————————————————
+
+5. Data Storage and Security
+
+Profile and progress data are stored on your device. We implement reasonable measures to protect data in our control; however, no method of transmission or storage is 100% secure. You are responsible for keeping your device secure.
+
+——————————————————————————————————————————————
+
+6. Data Retention
+
+Data stored on your device remains until you uninstall the App or clear app data. If we store data on our servers in the future, we will retain it only as long as necessary for the purposes described in this policy or as required by law.
+
+——————————————————————————————————————————————
+
+7. Children
+
+The App may be used by users of various ages. If you are under the age of majority in your jurisdiction, please use the App with the involvement of a parent or guardian. We do not knowingly collect personal information from children without appropriate consent where required.
+
+——————————————————————————————————————————————
+
+8. Your Rights
+
+Depending on your location, you may have rights to access, correct, or delete your personal data. You can update or clear your profile (name, age) at any time from the Account section of the App. For other requests, contact us using the details below.
+
+——————————————————————————————————————————————
+
+9. Changes to This Policy
+
+We may update this Privacy Policy from time to time. We will notify you of material changes through the App or by other reasonable means. Continued use after changes constitutes acceptance of the updated policy.
+
+——————————————————————————————————————————————
+
+10. Contact
+
+For privacy-related questions or requests, please contact us through the contact details provided in the App or on the applicable app store listing.

@@ -1,3 +1,8 @@
+import 'dart:ui' as ui;
+
+import 'package:firebase_analytics/firebase_analytics.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
@@ -5,6 +10,7 @@ import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'account_screen.dart';
+import 'firebase_options.dart';
 import 'generate_quiz_screen.dart';
 import 'generate_vocabulary_screen.dart';
 import 'home_screen.dart';
@@ -16,6 +22,7 @@ import 'quiz_screen.dart';
 import 'quiz_state.dart';
 import 'results_screen.dart';
 import 'services/ai_service.dart';
+import 'services/firebase_service.dart';
 import 'settings_screen.dart';
 import 'splash_screen.dart';
 import 'theme.dart';
@@ -29,8 +36,23 @@ import 'welcome_screen.dart';
 /// Alternative: run with --dart-define=GEMINI_API_KEY=your_key
 const String _kGeminiApiKey = 'AIzaSyDVICd_uScmQGnTCYOychebZ4UwglybnVM'; // Add your key here; get one at https://aistudio.google.com/apikey
 
-void main() {
+Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Initialize Firebase (replace firebase_options.dart via: dart run flutterfire_cli:flutterfire configure)
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+
+  // Pass Flutter framework errors to Crashlytics
+  FlutterError.onError = (details) {
+    FirebaseCrashlytics.instance.recordFlutterFatalError(details);
+  };
+
+  // Pass uncaught async errors to Crashlytics
+  ui.PlatformDispatcher.instance.onError = (error, stack) {
+    FirebaseCrashlytics.instance.recordError(error, stack, fatal: true);
+    return true;
+  };
+
   // Edge-to-edge: background extends into status bar area (transparent status bar).
   SystemChrome.setSystemUIOverlayStyle(
     const SystemUiOverlayStyle(
@@ -50,6 +72,7 @@ void main() {
         ChangeNotifierProvider(create: (_) => UserData()),
         ChangeNotifierProvider(create: (_) => QuizState()),
         ChangeNotifierProvider(create: (_) => VocabularyState()),
+        Provider<FirebaseService>(create: (_) => FirebaseService()),
         Provider<AiService>(
           create: (_) => AiService(
             apiKey: String.fromEnvironment('GEMINI_API_KEY', defaultValue: _kGeminiApiKey),
@@ -156,9 +179,20 @@ String? _redirect(BuildContext context, GoRouterState state) {
   return null;
 }
 
+/// Logs route changes to Firebase Analytics as screen views.
+class _AnalyticsRouteObserver extends NavigatorObserver {
+  @override
+  void didPush(Route<dynamic> route, Route<dynamic>? previousRoute) {
+    super.didPush(route, previousRoute);
+    final name = route.settings.name ?? 'unknown';
+    FirebaseAnalytics.instance.logScreenView(screenName: name, screenClass: name);
+  }
+}
+
 final GoRouter _router = GoRouter(
   initialLocation: '/',
   redirect: _redirect,
+  observers: [_AnalyticsRouteObserver()],
   routes: <RouteBase>[
     GoRoute(
       path: '/onboarding',
