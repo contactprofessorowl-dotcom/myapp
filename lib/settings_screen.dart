@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import 'package:provider/provider.dart';
 
 import 'providers.dart';
@@ -145,10 +146,38 @@ class SettingsScreen extends StatelessWidget {
                   ],
                 ),
               ),
+              const SizedBox(height: 40),
+              _AppVersion(),
+              const SizedBox(height: 24),
             ]),
           ),
         ),
       ],
+    );
+  }
+}
+
+class _AppVersion extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return FutureBuilder<PackageInfo>(
+      future: PackageInfo.fromPlatform(),
+      builder: (context, snapshot) {
+        final version = snapshot.data?.version ?? '—';
+        final buildNumber = snapshot.data?.buildNumber;
+        final text = buildNumber != null && buildNumber.isNotEmpty
+            ? 'Version $version ($buildNumber)'
+            : 'Version $version';
+        return Center(
+          child: Text(
+            text,
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+          ),
+        );
+      },
     );
   }
 }

@@ -187,20 +187,25 @@ class _GenerateVocabularyScreenState extends State<GenerateVocabularyScreen> {
               ),
             ),
             const SizedBox(height: 20),
-            GridView.count(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              crossAxisCount: 2,
-              mainAxisSpacing: 12,
-              crossAxisSpacing: 12,
-              childAspectRatio: 1.15,
-              children: suggestions.map((topic) {
-                return _VocabularyTopicCard(
-                  topic: topic,
-                  onTap: _isLoading ? null : () => _generate(context, topic: topic),
-                  theme: theme,
+            LayoutBuilder(
+              builder: (context, constraints) {
+                const spacing = 12.0;
+                final cardWidth = (constraints.maxWidth - spacing) / 2;
+                return Wrap(
+                  spacing: spacing,
+                  runSpacing: spacing,
+                  children: suggestions.map((topic) {
+                    return SizedBox(
+                      width: cardWidth,
+                      child: _VocabularyTopicCard(
+                        topic: topic,
+                        onTap: _isLoading ? null : () => _generate(context, topic: topic),
+                        theme: theme,
+                      ),
+                    );
+                  }).toList(),
                 );
-              }).toList(),
+              },
             ),
             const SizedBox(height: 20),
             Text(
@@ -319,7 +324,7 @@ class _VocabularyTopicCard extends StatelessWidget {
                         fontWeight: FontWeight.w600,
                         color: theme.colorScheme.onSurface,
                       ),
-                      maxLines: 2,
+                      maxLines: 3,
                       overflow: TextOverflow.ellipsis,
                     ),
                   ],
