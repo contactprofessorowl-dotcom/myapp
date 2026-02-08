@@ -205,6 +205,7 @@ class _ResultsScreenState extends State<ResultsScreen> {
                     if (_pointsEarned != null) ...[
                       const SizedBox(height: 16),
                       Semantics(
+                        liveRegion: true,
                         label: 'You earned $_pointsEarned points',
                         child: Container(
                           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
@@ -238,6 +239,7 @@ class _ResultsScreenState extends State<ResultsScreen> {
                         return Padding(
                           padding: const EdgeInsets.only(bottom: 8),
                           child: Semantics(
+                            liveRegion: true,
                             label: 'New badge: ${a.name}. ${a.description}',
                             child: Row(
                               mainAxisSize: MainAxisSize.min,

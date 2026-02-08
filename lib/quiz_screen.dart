@@ -104,6 +104,10 @@ class _QuizScreenState extends State<QuizScreen> {
             icon: const Icon(Icons.close_rounded),
             onPressed: () => _showExitConfirmation(context),
             tooltip: 'Close quiz',
+            style: IconButton.styleFrom(
+              minimumSize: const Size(48, 48),
+              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+            ),
           ),
         ),
         actions: [

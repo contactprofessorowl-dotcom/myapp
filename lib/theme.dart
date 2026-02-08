@@ -177,7 +177,7 @@ final ThemeData lightTheme = ThemeData(
       borderSide: const BorderSide(color: Color(0xFF7C3AED), width: 2),
     ),
     contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
-    hintStyle: GoogleFonts.nunito(color: Colors.grey.shade600, fontSize: 16),
+    hintStyle: GoogleFonts.nunito(color: const Color(0xFF6B7280), fontSize: 16),
   ),
 );
 

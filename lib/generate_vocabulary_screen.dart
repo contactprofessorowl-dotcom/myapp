@@ -235,18 +235,26 @@ class _GenerateVocabularyScreenState extends State<GenerateVocabularyScreen> {
               ),
             ],
             const SizedBox(height: 28),
-            FilledButton(
-              onPressed: _isLoading ? null : () => _generate(context),
-              style: FilledButton.styleFrom(
-                padding: const EdgeInsets.symmetric(vertical: 18),
+            Semantics(
+              label: _isLoading ? 'Generating vocabulary' : 'Generate and start flashcards',
+              button: true,
+              child: FilledButton(
+                onPressed: _isLoading ? null : () => _generate(context),
+                style: FilledButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(vertical: 18),
+                ),
+                child: _isLoading
+                    ? Semantics(
+                        liveRegion: true,
+                        label: 'Generating vocabulary. Please wait.',
+                        child: const SizedBox(
+                          height: 24,
+                          width: 24,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        ),
+                      )
+                    : const Text('Generate & start flashcards'),
               ),
-              child: _isLoading
-                  ? const SizedBox(
-                      height: 24,
-                      width: 24,
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    )
-                  : const Text('Generate & start flashcards'),
             ),
             if (!ai.isAvailable) ...[
               const SizedBox(height: 16),

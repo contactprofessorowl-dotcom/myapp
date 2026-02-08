@@ -39,6 +39,10 @@ class HomeScreen extends StatelessWidget {
               onPressed: () =>
                   Provider.of<ThemeProvider>(context, listen: false).toggleTheme(),
               tooltip: 'Toggle light / dark mode',
+              style: IconButton.styleFrom(
+                minimumSize: const Size(48, 48),
+                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              ),
             ),
           ],
         ),

@@ -179,8 +179,8 @@ class _LinkText extends StatelessWidget {
     return TextButton(
       onPressed: onTap,
       style: TextButton.styleFrom(
-        minimumSize: Size.zero,
-        padding: EdgeInsets.zero,
+        minimumSize: const Size(24, 24),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
         tapTargetSize: MaterialTapTargetSize.shrinkWrap,
         foregroundColor: theme.colorScheme.primary,
       ),

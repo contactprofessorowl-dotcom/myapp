@@ -253,10 +253,14 @@ class _GenerateQuizScreenState extends State<GenerateQuizScreen> {
                   padding: const EdgeInsets.symmetric(vertical: 18),
                 ),
                 child: _isLoading
-                  ? const SizedBox(
-                      height: 24,
-                      width: 24,
-                      child: CircularProgressIndicator(strokeWidth: 2),
+                  ? Semantics(
+                      liveRegion: true,
+                      label: 'Generating quiz. Please wait.',
+                      child: const SizedBox(
+                        height: 24,
+                        width: 24,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      ),
                     )
                   : const Text('Generate & start quiz'),
               ),
