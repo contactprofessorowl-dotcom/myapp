@@ -17,6 +17,7 @@ import 'home_screen.dart';
 import 'legal/privacy_policy_screen.dart';
 import 'legal/terms_screen.dart';
 import 'onboarding_screen.dart';
+import 'progress_screen.dart';
 import 'progress_state.dart';
 import 'providers.dart';
 import 'quiz_screen.dart';
@@ -206,6 +207,10 @@ final GoRouter _router = GoRouter(
           builder: (_, __) => const HomeScreen(),
         ),
         GoRoute(
+          path: '/progress',
+          builder: (_, __) => const ProgressScreen(),
+        ),
+        GoRoute(
           path: '/settings',
           builder: (_, __) => const SettingsScreen(),
         ),
@@ -254,112 +259,52 @@ class ScaffoldWithNavBar extends StatelessWidget {
   const ScaffoldWithNavBar({required this.child, super.key});
   final Widget child;
 
+  static int _selectedIndex(BuildContext context) {
+    final String location = GoRouterState.of(context).uri.toString();
+    if (location.startsWith('/progress')) return 1;
+    if (location.startsWith('/settings')) return 2;
+    if (location.startsWith('/account')) return 3;
+    return 0;
+  }
+
+  static const List<_NavDestination> _destinations = [
+    _NavDestination(icon: Icons.home_rounded, label: 'Home', path: '/'),
+    _NavDestination(icon: Icons.emoji_events_rounded, label: 'Progress', path: '/progress'),
+    _NavDestination(icon: Icons.settings_rounded, label: 'Settings', path: '/settings'),
+    _NavDestination(icon: Icons.person_rounded, label: 'Account', path: '/account'),
+  ];
+
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
+    final index = _selectedIndex(context);
     return Scaffold(
       body: SafeArea(
         top: true,
         bottom: false,
         child: child,
       ),
-      bottomNavigationBar: Container(
-        decoration: BoxDecoration(
-          color: isDark ? const Color(0xFF1E293B) : Colors.white,
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: isDark ? 0.3 : 0.08),
-              blurRadius: 12,
-              offset: const Offset(0, -4),
-            ),
-          ],
-        ),
-        child: SafeArea(
-          top: false,
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
-              children: [
-                _NavItem(
-                  icon: Icons.home_rounded,
-                  label: 'Home',
-                  isSelected: _calculateSelectedIndex(context) == 0,
-                  onTap: () => context.go('/'),
-                ),
-                _NavItem(
-                  icon: Icons.settings_rounded,
-                  label: 'Settings',
-                  isSelected: _calculateSelectedIndex(context) == 1,
-                  onTap: () => context.go('/settings'),
-                ),
-                _NavItem(
-                  icon: Icons.person_rounded,
-                  label: 'Account',
-                  isSelected: _calculateSelectedIndex(context) == 2,
-                  onTap: () => context.go('/account'),
-                ),
-              ],
-            ),
-          ),
-        ),
+      bottomNavigationBar: NavigationBar(
+        selectedIndex: index,
+        onDestinationSelected: (int i) => context.go(_destinations[i].path),
+        destinations: _destinations
+            .map((d) => NavigationDestination(
+                  icon: Icon(d.icon),
+                  selectedIcon: Icon(d.icon),
+                  label: d.label,
+                ))
+            .toList(),
       ),
     );
-  }
-
-  static int _calculateSelectedIndex(BuildContext context) {
-    final String location = GoRouterState.of(context).uri.toString();
-    if (location.startsWith('/settings')) return 1;
-    if (location.startsWith('/account')) return 2;
-    return 0;
   }
 }
 
-class _NavItem extends StatelessWidget {
-  const _NavItem({
+class _NavDestination {
+  const _NavDestination({
     required this.icon,
     required this.label,
-    required this.isSelected,
-    required this.onTap,
+    required this.path,
   });
-
   final IconData icon;
   final String label;
-  final bool isSelected;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final color = isSelected
-        ? theme.bottomNavigationBarTheme.selectedItemColor ?? theme.primaryColor
-        : theme.bottomNavigationBarTheme.unselectedItemColor ?? theme.disabledColor;
-
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(20),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(icon, size: 26, color: color),
-              const SizedBox(height: 4),
-              Text(
-                label,
-                style: theme.textTheme.labelMedium?.copyWith(
-                  color: color,
-                  fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
+  final String path;
 }
