@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
+import 'progress_state.dart';
 import 'providers.dart';
 
 class AccountScreen extends StatelessWidget {
@@ -334,6 +335,7 @@ class _LogoutSection extends StatelessWidget {
           ),
           FilledButton(
             onPressed: () {
+              Provider.of<ProgressState>(ctx, listen: false).resetProgress();
               userData.clearUserData();
               Navigator.of(ctx).pop();
               context.go('/welcome');

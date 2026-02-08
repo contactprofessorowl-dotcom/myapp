@@ -270,4 +270,27 @@ class ProgressState with ChangeNotifier {
     return newly;
   }
 
+  /// Clears all progress and achievements. Call when user logs out / starts fresh.
+  void resetProgress() {
+    _totalPoints = 0;
+    _currentStreak = 0;
+    _lastActivityDate = null;
+    _completedQuizzes = 0;
+    _completedFlashcardSets = 0;
+    _unlockedAchievementIds.clear();
+    _dailyGoalDate = null;
+    _dailyGoalDone = false;
+    if (_prefs != null) {
+      _prefs!.remove(_keyTotalPoints);
+      _prefs!.remove(_keyCurrentStreak);
+      _prefs!.remove(_keyLastActivityDate);
+      _prefs!.remove(_keyCompletedQuizzes);
+      _prefs!.remove(_keyCompletedSets);
+      _prefs!.remove(_keyAchievements);
+      _prefs!.remove(_keyDailyGoalDate);
+      _prefs!.remove(_keyDailyGoalDone);
+    }
+    notifyListeners();
+  }
+
 }

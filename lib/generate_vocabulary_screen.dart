@@ -142,9 +142,11 @@ class _GenerateVocabularyScreenState extends State<GenerateVocabularyScreen> {
       appBar: AppBar(
         title: const Text('Vocabulary'),
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(24),
-        child: Column(
+      body: Stack(
+        children: [
+          SingleChildScrollView(
+            padding: const EdgeInsets.all(24),
+            child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Semantics(
@@ -243,17 +245,7 @@ class _GenerateVocabularyScreenState extends State<GenerateVocabularyScreen> {
                 style: FilledButton.styleFrom(
                   padding: const EdgeInsets.symmetric(vertical: 18),
                 ),
-                child: _isLoading
-                    ? Semantics(
-                        liveRegion: true,
-                        label: 'Generating vocabulary. Please wait.',
-                        child: const SizedBox(
-                          height: 24,
-                          width: 24,
-                          child: CircularProgressIndicator(strokeWidth: 2),
-                        ),
-                      )
-                    : const Text('Generate & start flashcards'),
+                child: const Text('Generate & start flashcards'),
               ),
             ),
             if (!ai.isAvailable) ...[
@@ -268,6 +260,54 @@ class _GenerateVocabularyScreenState extends State<GenerateVocabularyScreen> {
             ],
           ],
         ),
+      ),
+          if (_isLoading)
+            Positioned.fill(
+              child: Semantics(
+                liveRegion: true,
+                label: 'Generating vocabulary. Please wait.',
+                child: ColoredBox(
+                  color: theme.colorScheme.scrim.withValues(alpha: 0.4),
+                  child: Center(
+                    child: Card(
+                      margin: const EdgeInsets.symmetric(horizontal: 32),
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 28),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            SizedBox(
+                              width: 48,
+                              height: 48,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 3,
+                                color: theme.colorScheme.primary,
+                              ),
+                            ),
+                            const SizedBox(height: 20),
+                            Text(
+                              'Generating vocabulary…',
+                              style: theme.textTheme.titleMedium?.copyWith(
+                                fontWeight: FontWeight.w600,
+                                color: theme.colorScheme.onSurface,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              'Please wait',
+                              style: theme.textTheme.bodyMedium?.copyWith(
+                                color: theme.colorScheme.onSurfaceVariant,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+        ],
       ),
     );
   }

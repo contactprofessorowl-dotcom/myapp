@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
+import 'progress_state.dart';
 import 'providers.dart';
 
 /// First screen after onboarding (or after logout): collect name and age, then go to home.
@@ -28,6 +29,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
   void _submit(BuildContext context) {
     if (!_formKey.currentState!.validate()) return;
     final userData = Provider.of<UserData>(context, listen: false);
+    Provider.of<ProgressState>(context, listen: false).resetProgress();
     userData.setUserData(
       _nameController.text.trim(),
       _ageController.text.trim(),
@@ -51,7 +53,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
               children: [
                 const SizedBox(height: 48),
                 Icon(
-                  Icons.waving_hand_rounded,
+                  Icons.flash_on_rounded,
                   size: 56,
                   color: theme.colorScheme.primary,
                 ),
